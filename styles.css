@@ -1,0 +1,171 @@
+/* 拟物化「索引卡片墙」样式。
+   思路：卡片固定用纸张配色（不随深色主题变白），
+   背景用三层叠加实现——红色页边竖线 + 索引卡横线 + 细腻纸纹点阵，
+   再叠加多层 box-shadow 制造厚度，transform 做轻微随机旋转（--tilt 由视图按路径稳定生成）。 */
+
+.skw-container {
+	/* 桌面：略暖的底色，衬托纸卡的白。 */
+	padding: 24px clamp(16px, 4vw, 48px) 64px;
+	max-width: 1200px;
+	margin: 0 auto;
+	background:
+		radial-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1.6px) 0 0 / 7px 7px,
+		linear-gradient(180deg, #efe7d6, #e7dcc6);
+	color: #2b2b2b;
+	--rule: 28px; /* 索引卡横线间距，正文行高需与之一致 */
+}
+
+/* —— 页头 —— */
+.skw-header {
+	margin-bottom: 28px;
+}
+.skw-title {
+	font-size: 1.7rem;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+	margin: 0 0 4px;
+	color: #3a3226;
+}
+.skw-subtitle {
+	margin: 0;
+	font-size: 0.85rem;
+	color: #6d6455;
+	letter-spacing: 0.3px;
+}
+
+/* —— 领域分区 —— */
+.skw-section {
+	margin: 0 0 34px;
+}
+.skw-section-title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 18px;
+	padding-bottom: 8px;
+	border-bottom: 2px solid rgba(58, 50, 38, 0.18);
+}
+.skw-section-name {
+	font-size: 1.05rem;
+	font-weight: 700;
+	letter-spacing: 0.6px;
+	color: #3a3226;
+}
+.skw-section-count {
+	min-width: 22px;
+	padding: 1px 8px;
+	border-radius: 999px;
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-align: center;
+	color: #fff8ec;
+	background: #b0772f;
+	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+}
+
+/* —— 卡片网格：用多列实现错落「钉墙」感 —— */
+.skw-grid {
+	column-width: 244px;
+	column-gap: 22px;
+}
+
+/* —— 单张索引卡 —— */
+.skw-card {
+	position: relative;
+	display: block;
+	box-sizing: border-box;
+	break-inside: avoid;
+	-webkit-column-break-inside: avoid;
+	margin: 0 0 24px;
+	padding: 16px 16px 30px 50px;
+	border: 1px solid rgba(90, 74, 50, 0.16);
+	border-radius: 3px;
+	cursor: pointer;
+	background-color: #fbf6ea;
+	/* 三层背景：竖排红线 | 索引横线 | 纸纹点阵 */
+	background-image:
+		linear-gradient(90deg, transparent 0 39px, rgba(205, 105, 105, 0.55) 39px 41px, transparent 41px),
+		repeating-linear-gradient(180deg, rgba(96, 132, 168, 0) 0 calc(var(--rule) - 1px), rgba(96, 132, 168, 0.34) calc(var(--rule) - 1px) var(--rule)),
+		radial-gradient(rgba(70, 55, 30, 0.045) 1px, transparent 1.5px);
+	background-size: auto, auto, 6px 6px;
+	/* 横线整体下移，给页首标题留出干净区域 */
+	background-position: 0 0, 0 56px, 0 0;
+	box-shadow:
+		0 1px 0 rgba(255, 255, 255, 0.6) inset,
+		0 2px 3px rgba(0, 0, 0, 0.14),
+		0 14px 22px -10px rgba(0, 0, 0, 0.3);
+	/* 轻微随机旋转 + 立体感 */
+	transform: rotate(var(--tilt, 0deg));
+	transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.skw-card:hover,
+.skw-card:focus-visible {
+	/* 悬停时摆正、抬起，像被人从墙上拿起 */
+	transform: rotate(0deg) translateY(-3px) scale(1.015);
+	box-shadow:
+		0 1px 0 rgba(255, 255, 255, 0.6) inset,
+		0 4px 8px rgba(0, 0, 0, 0.16),
+		0 22px 34px -12px rgba(0, 0, 0, 0.36);
+	outline: none;
+	z-index: 2;
+}
+
+.skw-card-title {
+	position: relative;
+	font-size: 1rem;
+	font-weight: 700;
+	line-height: 1.25;
+	margin: 0 0 10px;
+	color: #2f2a20;
+	/* 让标题落在页首，不被横线穿过 */
+	word-break: break-word;
+}
+
+.skw-card-excerpt {
+	margin: 0;
+	font-size: 0.9rem;
+	line-height: var(--rule); /* 与横线间距对齐，视觉上像写在横线上 */
+	color: #45403a;
+	white-space: normal;
+	word-break: break-word;
+}
+
+.skw-card-path {
+	position: absolute;
+	left: 50px;
+	right: 14px;
+	bottom: 8px;
+	font-size: 0.68rem;
+	color: #9a8f7c;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+.skw-card:hover .skw-card-path,
+.skw-card:focus-visible .skw-card-path {
+	opacity: 1;
+}
+
+/* —— 空状态 —— */
+.skw-empty {
+	padding: 40px 20px;
+	text-align: center;
+	color: #6d6455;
+	font-size: 0.95rem;
+	border: 1px dashed rgba(90, 74, 50, 0.3);
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.35);
+}
+
+/* 深色主题下仅调整桌面底色，纸卡本身保持纸张色。 */
+.theme-dark .skw-container {
+	background:
+		radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1.6px) 0 0 / 7px 7px,
+		linear-gradient(180deg, #2a2620, #211d18);
+}
+.theme-dark .skw-title,
+.theme-dark .skw-section-name {
+	color: #efe7d6;
+}

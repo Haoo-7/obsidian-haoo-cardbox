@@ -1,0 +1,10 @@
+{
+  "id": "skeuomorphic-cards",
+  "name": "拟物卡片盒笔记墙",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.0",
+  "description": "把文献卡片笔记渲染成一张张像实体索引卡片的卡片，按领域分组，总览各领域积累的卡片。",
+  "author": "skeuomorphic-cards",
+  "authorUrl": "https://github.com/skeuomorphic-cards/obsidian-skeuomorphic-cards",
+  "isDesktopOnly": false
+}

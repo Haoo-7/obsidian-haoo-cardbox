@@ -1,0 +1,27 @@
+{
+  "name": "obsidian-skeuomorphic-cards",
+  "version": "1.0.0",
+  "description": "拟物化（skeuomorphic）卡片盒笔记墙 Obsidian 插件",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production",
+    "check": "tsc --noEmit",
+    "test": "esbuild tests/cards.test.ts --bundle --platform=node --format=esm --outfile=build/cards.test.mjs && node --test build/cards.test.mjs"
+  },
+  "keywords": [
+    "obsidian",
+    "zettelkasten",
+    "slipbox",
+    "skeuomorphic"
+  ],
+  "author": "skeuomorphic-cards",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.25.0",
+    "obsidian": "^1.7.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.6.0"
+  }
+}

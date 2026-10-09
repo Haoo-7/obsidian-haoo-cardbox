@@ -12,7 +12,7 @@
 
 ### 方式一：手动安装（当前构建产物）
 
-仓库已构建好，产物在 `dist/`。
+先构建一次（`npm run build`），产物在 `dist/`。
 
 1. 找到你的 Vault：`<你的Vault>/.obsidian/plugins/`（若 `plugins` 目录不存在则手动新建）。
 2. 新建文件夹 `<Vault>/.obsidian/plugins/skeuomorphic-cards/`（文件夹名需与 `manifest.json` 的 `id` 一致）。

@@ -1,0 +1,23 @@
+{
+  "name": "obsidian-skeuomorphic-cards",
+  "version": "0.1.0",
+  "description": "拟物卡片盒：把笔记按领域装进文件夹，摊开挑卡，摆上画板连线勾画，排成 MOC 骨架的 Obsidian 插件",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production",
+    "check": "tsc --noEmit",
+    "test": "esbuild tests/*.test.ts --bundle --platform=node --format=esm --outdir=build/tests --out-extension:.js=.mjs && node --test build/tests/*.test.mjs"
+  },
+  "keywords": ["obsidian", "zettelkasten", "moc", "canvas"],
+  "author": "Haoo-7",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.25.0",
+    "obsidian": "^1.7.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.6.0"
+  }
+}

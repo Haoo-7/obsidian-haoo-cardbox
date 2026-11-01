@@ -7,7 +7,7 @@ const MIN_ZOOM = 0.35, MAX_ZOOM = 1.6;
  * 卡片上的指针：
  * - 按住拖动：挪位置，选中的几张一起动；
  * - 没动就松手：单击选中，⇧ 加选；⌘ / Ctrl 单击在右侧分栏打开原笔记；
- * - 双击：翻面。
+ * - 双击：翻面；右键：菜单。
  */
 export function bindCard(c: BoardCanvas, it: Item): void {
   const el = it.el;
@@ -71,7 +71,9 @@ export function bindCard(c: BoardCanvas, it: Item): void {
     el.addEventListener("pointercancel", up);
     el.addEventListener("lostpointercapture", up);
   });
-  el.addEventListener("dblclick", (e) => { e.stopPropagation(); void c.flip(it); });
+  // 双击翻面；缺失卡片背面什么都没有，双击就是重新指向。
+  el.addEventListener("dblclick", (e) => { e.stopPropagation(); if (it.node.missing) c.host.relink(it.node); else void c.flip(it); });
+  el.addEventListener("contextmenu", (e) => { e.preventDefault(); e.stopPropagation(); c.host.menu(e, it); });
   el.addEventListener("mouseover", (e) => { if (!it.node.missing) c.host.hover(e, it.node.file, el); });
 }
 

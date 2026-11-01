@@ -57,6 +57,14 @@ export class History {
     this.current = next;
   }
 
+  /** 库里的笔记改名、删除时，所有快照里的路径一起改，撤销回去不会指向已经不在的笔记。 */
+  rewrite(fn: (doc: unknown) => unknown): void {
+    const map = (s: string) => snapshot(fn(JSON.parse(s) as unknown));
+    this.undoStack.splice(0, this.undoStack.length, ...this.undoStack.map(map));
+    this.redoStack.splice(0, this.redoStack.length, ...this.redoStack.map(map));
+    if (this.current !== undefined) this.current = map(this.current);
+  }
+
   /** 供适配层决定撤销操作是否可用。 */
   get canUndo(): boolean {
     return this.undoStack.length > 0;

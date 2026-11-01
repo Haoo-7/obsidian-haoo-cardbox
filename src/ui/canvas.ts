@@ -15,6 +15,10 @@ export interface CanvasHost {
   changed(): void;
   /** 只是平移缩放：写回笔记，但不进撤销历史。 */
   viewChanged(): void;
+  /** 卡片上的右键菜单。 */
+  menu(e: MouseEvent, it: Item): void;
+  /** 缺失卡片换成另一篇笔记。 */
+  relink(node: BoardNode): void;
 }
 
 /** sig：画这张卡时用的笔记内容，用来判断要不要重画。 */

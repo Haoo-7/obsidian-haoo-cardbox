@@ -164,3 +164,23 @@ test("无效撤销上限和无法序列化的内容被拒绝，已有历史不�
   assert.equal(history.undo(), "甲");
   assert.equal(history.redo(), "乙");
 });
+
+test("改写历史：撤销、重做和当前快照都按同一个规则改，栈的长度不变", () => {
+  const history = new History();
+  history.commit({ file: "a.md", n: 1 });
+  history.commit({ file: "a.md", n: 2 });
+  history.commit({ file: "a.md", n: 3 });
+  history.undo();
+  const ren = (d: unknown) => ({ ...(d as { file: string; n: number }), file: "b.md" });
+  history.rewrite(ren);
+  assert.equal(history.canUndo, true);
+  assert.equal(history.canRedo, true);
+  assert.deepEqual(history.redo(), { file: "b.md", n: 3 });
+  assert.deepEqual(history.undo(), { file: "b.md", n: 2 });
+  assert.deepEqual(history.undo(), { file: "b.md", n: 1 });
+  assert.equal(history.undo(), null);
+  // 改写之后提交改写后的当前内容，不算新的一步
+  history.redo();
+  history.commit({ file: "b.md", n: 2 });
+  assert.deepEqual(history.undo(), { file: "b.md", n: 1 });
+});

@@ -1,7 +1,8 @@
-import { Menu, TextFileView, TFile, WorkspaceLeaf } from "obsidian";
-import { BoardParseError, buildMoc, History, parseBoardNote, serializeBoardNote } from "../core";
-import type { ParsedBoardNote } from "../core";
+import { Menu, Notice, TextFileView, WorkspaceLeaf, normalizePath } from "obsidian";
+import { BoardParseError, buildMoc, History, parseBoardNote, relink, serializeBoardNote, toJsonCanvas } from "../core";
+import type { BoardData, BoardNode, ParsedBoardNote } from "../core";
 import { BoardCanvas } from "../ui/canvas";
+import type { Item } from "../ui/canvas";
 import { MODE_KEYS } from "../ui/ink";
 import { Shelf } from "../ui/shelf";
 import type SkeuomorphicCards from "../main";
@@ -37,6 +38,8 @@ export class BoardView extends TextFileView {
       hover: (e, p, el) => this.app.workspace.trigger("hover-link", { event: e, source: VIEW_TYPE, hoverParent: this, targetEl: el, linktext: p, sourcePath: this.file?.path ?? "" }),
       changed: () => { this.history.commit(this.doc()); this.requestSave(); this.shelf.refreshOn(); },
       viewChanged: () => this.requestSave(),
+      menu: (e, it) => this.cardMenu(e, it),
+      relink: (node) => this.pickRelink(node),
     });
     this.shelf = new Shelf(this.contentEl, {
       piles: () => this.plugin.piles(),
@@ -55,7 +58,7 @@ export class BoardView extends TextFileView {
   getViewData(): string {
     // 读坏了的笔记原样写回，绝不用空画板覆盖用户的数据。
     if (!this.parsed) return this.data;
-    const moc = buildMoc(this.parsed.data, (p) => this.linkOf(p));
+    const moc = buildMoc(this.parsed.data, (p) => this.plugin.linkOf(p, this.file?.path ?? ""));
     return serializeBoardNote(this.parsed, moc);
   }
 
@@ -105,11 +108,61 @@ export class BoardView extends TextFileView {
     this.shelf.render();
   }
 
-  private linkOf(path: string): string {
-    const f = this.app.vault.getAbstractFileByPath(path);
-    const from = this.file?.path ?? "";
-    if (f instanceof TFile) return this.app.fileManager.generateMarkdownLink(f, from);
-    return `[[${path.replace(/\.md$/, "")}]]`;
+  /**
+   * 库里的笔记改名、删除了：改这块画板的数据，撤销历史里的快照一起改。返回 false 表示这块画板没读出来，没改。
+   * 只改 nodes，连线、标注、视口原样不动。
+   */
+  applyEdit(fn: (d: BoardData) => BoardData): boolean {
+    if (!this.parsed) return false;
+    const d = this.parsed.data, before = JSON.stringify(d.nodes);
+    const next = fn(d);
+    if (JSON.stringify(next.nodes) === before) return true;
+    d.nodes = next.nodes;
+    this.history.rewrite((doc) => ({ ...(doc as object), nodes: fn(doc as BoardData).nodes }));
+    this.canvas.load(d);
+    this.requestSave();
+    this.shelf.refreshOn();
+    return true;
+  }
+
+  // ── 卡片的右键菜单、缺失卡片重新指向 ──
+  private cardMenu(e: MouseEvent, it: Item): void {
+    const c = this.canvas, n = it.node;
+    if (!it.el.hasClass("is-sel")) c.select(it, false);
+    const count = c.selected().length;
+    const m = new Menu();
+    if (n.missing) {
+      m.addItem((i) => i.setTitle("重新指向一篇笔记…").setIcon("link").onClick(() => this.pickRelink(n)));
+    } else {
+      m.addItem((i) => i.setTitle("在右侧打开原笔记").setIcon("separator-vertical").onClick(() => c.host.open(n.file, true)));
+      m.addItem((i) => i.setTitle(n.flipped ? "翻回正面" : "翻到背面").setIcon("flip-horizontal-2").onClick(() => void c.flip(it)));
+    }
+    m.addSeparator();
+    m.addItem((i) => i.setTitle(count > 1 ? `从画板上拿下 ${count} 张卡` : "从画板上拿下").setIcon("x").onClick(() => c.removeSelected()));
+    m.showAtMouseEvent(e);
+  }
+  /** 缺失卡片换成另一篇笔记：卡片标识不变，连线都还在。 */
+  private pickRelink(node: BoardNode): void {
+    this.plugin.pick("把这张卡重新指向哪篇笔记", (n) => !this.canvas.has(n.path), (n) => {
+      if (!this.parsed) return;
+      this.parsed.data.nodes = relink(this.parsed.data, node.id, n.path).nodes;
+      this.canvas.load(this.parsed.data);
+      this.canvas.host.changed();
+    });
+  }
+
+  // ── 导出：同一文件夹下一份 .canvas，卡片和连线照原样，笔迹和缺失卡片不带 ──
+  async exportCanvas(): Promise<void> {
+    if (!this.parsed || !this.file) return;
+    const d = this.parsed.data, out = toJsonCanvas(d);
+    const dir = this.file.parent?.path ?? "/";
+    const at = (n: string) => normalizePath(`${dir === "/" ? "" : dir + "/"}${n}.canvas`);
+    let name = this.file.basename, i = 1;
+    while (this.app.vault.getAbstractFileByPath(at(name))) name = `${this.file.basename} ${++i}`;
+    const f = await this.app.vault.create(at(name), JSON.stringify(out, null, "\t"));
+    await this.app.workspace.getLeaf("tab").openFile(f);
+    const lost = [d.strokes.length && `${d.strokes.length} 条标注`, d.nodes.length - out.nodes.length && `${d.nodes.length - out.nodes.length} 张缺失卡片`].filter(Boolean);
+    new Notice(`导出了「${name}.canvas」${lost.length ? `。原生画板不支持，没带上 ${lost.join("和 ")}` : ""}`);
   }
 
   // ── 撤销 ──
@@ -145,6 +198,7 @@ export class BoardView extends TextFileView {
 
   onPaneMenu(menu: Menu, source: string): void {
     menu.addItem((i) => i.setTitle("用 Markdown 打开").setIcon("file-text").onClick(() => void this.openAsMarkdown()));
+    if (this.parsed) menu.addItem((i) => i.setTitle("导出为 .canvas").setIcon("layout-dashboard").onClick(() => void this.exportCanvas()));
     super.onPaneMenu(menu, source);
   }
 

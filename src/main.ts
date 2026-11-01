@@ -1,11 +1,19 @@
 import { FuzzySuggestModal, MarkdownView, Notice, Plugin, TFile, normalizePath } from "obsidian";
-import type { VaultNote } from "./core";
-import { newBoardNote } from "./core";
+import type { Pile, VaultNote } from "./core";
+import { buildPiles, newBoardNote } from "./core";
+import { SWATCHES } from "./ui/shelf";
+import type { Swatch } from "./ui/shelf";
 import { BoardView, VIEW_TYPE } from "./obsidian/view";
 import { excerptOf, snapshot } from "./obsidian/vault";
 
-interface Settings { domainPrefix: string; }
-const DEFAULTS: Settings = { domainPrefix: "domain/" };
+interface Settings {
+  domainPrefix: string;
+  /** 所有文件夹的默认颜色；null = 跟着主题（浅色雾白，深色石墨）。 */
+  folderColor: string | null;
+  /** 单独换过色的文件夹：卡堆名 → 颜色。 */
+  folderColors: Record<string, string>;
+}
+const DEFAULTS: Settings = { domainPrefix: "domain/", folderColor: null, folderColors: {} };
 
 /**
  * 插件入口：注册画板视图；带 skeuo-board 的笔记默认用画板打开；维护整个库的笔记快照，给卡片和卡堆用。
@@ -16,6 +24,7 @@ export default class SkeuomorphicCards extends Plugin {
   /** 用户点了「用 Markdown 打开」的笔记：下一次打开它时不自动切成画板。 */
   markdownOnce = new Set<string>();
   private excerpts = new Map<string, string>();
+  private pileCache: Pile[] | null = null;
   private rebuildTimer = 0;
 
   async onload() {
@@ -45,6 +54,9 @@ export default class SkeuomorphicCards extends Plugin {
         void (leaf ?? this.app.workspace.getLeaf()).setViewState({ type: VIEW_TYPE, state: { file: file.path } });
       }));
     }));
+
+    // 换主题时，跟着主题走的文件夹颜色要换一遍。
+    this.registerEvent(this.app.workspace.on("css-change", () => this.repaint()));
 
     this.addRibbonIcon("layout-dashboard", "新建画板", () => void this.newBoard());
     this.addCommand({ id: "new-board", name: "新建画板", callback: () => void this.newBoard() });
@@ -76,7 +88,39 @@ export default class SkeuomorphicCards extends Plugin {
   }
   private rebuild(): void {
     this.notes = snapshot(this.app, this.settings.domainPrefix);
+    this.pileCache = null;
     this.app.workspace.getLeavesOfType(VIEW_TYPE).forEach((l) => (l.view as BoardView).notesChanged());
+  }
+
+  piles(): Pile[] {
+    return (this.pileCache ??= buildPiles([...this.notes.values()]));
+  }
+
+  swatch(pile: string): Swatch {
+    const dark = document.body.hasClass("theme-dark");
+    const id = this.settings.folderColors[pile] ?? this.settings.folderColor ?? (dark ? "graphite" : "mist");
+    return SWATCHES.find((s) => s.id === id) ?? SWATCHES[1];
+  }
+  async setFolderColor(pile: string, id: string | null): Promise<void> {
+    if (id) this.settings.folderColors[pile] = id;
+    else delete this.settings.folderColors[pile];
+    await this.saveData(this.settings);
+    this.repaint();
+  }
+  /** 所有文件夹统一换成这种颜色，单独换过的也一起改回来。 */
+  async setDefaultColor(id: string): Promise<void> {
+    this.settings.folderColor = id;
+    this.settings.folderColors = {};
+    await this.saveData(this.settings);
+    this.repaint();
+  }
+  private repaint(): void {
+    this.app.workspace.getLeavesOfType(VIEW_TYPE).forEach((l) => (l.view as BoardView).shelf?.paint());
+  }
+
+  /** 一堆卡太多、散开放不下时：在这一堆里搜，选中的放到画板正中间。 */
+  pickFrom(view: BoardView, pile: Pile): void {
+    new AddCardModal(this, view, pile).open();
   }
 
   async excerpt(path: string): Promise<string> {
@@ -99,12 +143,13 @@ export default class SkeuomorphicCards extends Plugin {
 
 /** 先用搜索把笔记放上画板；第 3 阶段卡堆栏做好以后，这条命令仍然保留，给知道名字的卡用。 */
 class AddCardModal extends FuzzySuggestModal<VaultNote> {
-  constructor(private plugin: SkeuomorphicCards, private view: BoardView) {
+  constructor(private plugin: SkeuomorphicCards, private view: BoardView, private pile?: Pile) {
     super(plugin.app);
-    this.setPlaceholder("搜索要放上画板的笔记");
+    this.setPlaceholder(pile ? `在「${pile.name}」里搜索` : "搜索要放上画板的笔记");
   }
   getItems(): VaultNote[] {
-    return [...this.plugin.notes.values()].filter((n) => n.domains.length && !n.isBoard && !this.view.canvas.has(n.path));
+    const from = this.pile ? this.pile.cards : [...this.plugin.notes.values()];
+    return from.filter((n) => n.domains.length && !n.isBoard && !this.view.canvas.has(n.path));
   }
   getItemText(n: VaultNote): string {
     return `${n.title}  ·  ${n.domains.join(" · ")}`;

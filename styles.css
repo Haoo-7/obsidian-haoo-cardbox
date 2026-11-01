@@ -17,8 +17,9 @@
   --sk-sh-lift: inset 0 1px 0 rgba(255,255,255,.35), 0 0 0 .5px rgba(0,0,0,.5), 0 8px 14px -4px rgba(0,0,0,.5), 0 34px 52px -18px rgba(0,0,0,.8);
 }
 
-/* ── 画板 ── */
-.sk-board { position: absolute; inset: 0; outline: none; -webkit-user-select: none; user-select: none; }
+/* ── 画板：占卡堆栏以上的整块 ── */
+.sk-view { --sk-shelf-h: 236px; position: relative; }
+.sk-board { position: absolute; left: 0; top: 0; right: 0; bottom: var(--sk-shelf-h); outline: none; -webkit-user-select: none; user-select: none; }
 .sk-viewport {
   position: absolute; inset: 0; overflow: hidden;
   background-color: var(--background-primary);
@@ -30,7 +31,7 @@
 }
 .sk-viewport.is-pan { cursor: grabbing; }
 .sk-content { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; transform: translate(var(--vx, 0), var(--vy, 0)) scale(var(--z, 1)); }
-.sk-zoom { position: absolute; right: 14px; bottom: 12px; font-family: var(--font-monospace); font-size: 11px; color: var(--text-muted); pointer-events: none; }
+.sk-zoom { position: absolute; right: 14px; top: 12px; font-family: var(--font-monospace); font-size: 11px; color: var(--text-muted); pointer-events: none; }
 
 /* ── 卡片：色卡纸·改，扉页版式 ── */
 .sk-card {
@@ -99,3 +100,57 @@
 .sk-broken { max-width: 420px; margin: 18vh auto 0; padding: 0 24px; color: var(--text-normal); }
 .sk-broken-why { color: var(--text-muted); font-size: var(--font-ui-small); }
 @media (prefers-reduced-motion: reduce) { .sk-card, .sk-in { transition-duration: 1ms !important; } }
+
+/* ── 卡堆栏：画板下面一条底座，一排文件夹，太多时横向滚动 ── */
+.sk-shelf { position: absolute; left: 0; right: 0; bottom: 0; height: var(--sk-shelf-h); z-index: 3; background: color-mix(in srgb, var(--text-normal) 3%, var(--background-primary)); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-normal) 8%, transparent); }
+.sk-strip { display: flex; gap: 32px; height: 100%; padding: 64px 28px 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.sk-shelf-empty { align-self: center; margin-top: -60px; color: var(--text-muted); font-size: var(--font-ui-small); }
+.sk-folder { position: relative; flex: 0 0 190px; width: 190px; height: 140px; cursor: pointer; }
+.sk-f-back, .sk-f-front { position: absolute; left: 0; width: 190px; transition: filter 260ms, transform 320ms cubic-bezier(.2, .8, .2, 1); }
+.sk-f-cards { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.sk-f-back, .sk-f-front {
+  --fc: #e9eaee;
+  --f-back: color-mix(in srgb, var(--fc) 82%, black); --f-top: color-mix(in srgb, var(--fc) 72%, white); --f-bot: var(--fc);
+  --f-line: color-mix(in srgb, black 10%, transparent); --f-ink: color-mix(in srgb, black 82%, var(--fc)); --f-ink-soft: color-mix(in srgb, black 52%, var(--fc));
+}
+.sk-f-back[data-ink="light"], .sk-f-front[data-ink="light"] {
+  --f-back: color-mix(in srgb, var(--fc) 70%, black); --f-top: color-mix(in srgb, var(--fc) 62%, white);
+  --f-line: color-mix(in srgb, white 9%, transparent); --f-ink: color-mix(in srgb, white 92%, var(--fc)); --f-ink-soft: color-mix(in srgb, white 62%, var(--fc));
+}
+.sk-f-back { top: 0; z-index: 1; height: 140px; border-radius: 14px; background: var(--f-back); box-shadow: inset 0 0 0 1px var(--f-line), 0 18px 30px -16px color-mix(in srgb, black 45%, transparent); }
+.sk-f-back::before, .sk-f-back::after { content: ""; position: absolute; top: 9px; height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--f-ink) 28%, transparent); }
+.sk-f-back::before { left: 14px; width: 22px; }
+.sk-f-back::after { left: 41px; width: 13px; }
+.sk-f-front {
+  top: 36px; z-index: 3; height: 104px;
+  clip-path: path("M0 32 Q0 18 14 18 L96 18 Q106 18 112 10 L118 3 Q121 0 128 0 L176 0 Q190 0 190 14 L190 90 Q190 104 176 104 L14 104 Q0 104 0 90 Z");
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--f-top) 84%, transparent) 0%, color-mix(in srgb, var(--f-bot) 97%, transparent) 62%);
+  -webkit-backdrop-filter: blur(9px) saturate(1.1); backdrop-filter: blur(9px) saturate(1.1);
+}
+.sk-f-front svg { position: absolute; inset: 0; overflow: visible; }
+.sk-f-name { position: absolute; left: 16px; bottom: 30px; max-width: 158px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 500; color: var(--f-ink); }
+.sk-f-count { position: absolute; left: 16px; bottom: 14px; font-family: var(--font-monospace); font-size: 10px; color: var(--f-ink-soft); }
+.sk-folder:hover .sk-f-front { transform: translateY(3px); }
+.sk-folder.is-open .sk-f-front { transform: translateY(6px); }
+.sk-folder.is-dim .sk-f-back, .sk-folder.is-dim .sk-f-front, .sk-folder.is-dim .sk-f-cards { filter: brightness(1.04) contrast(.55) saturate(.4); }
+.theme-dark .sk-folder.is-dim .sk-f-back, .theme-dark .sk-folder.is-dim .sk-f-front, .theme-dark .sk-folder.is-dim .sk-f-cards { filter: brightness(.5) saturate(.5); }
+
+/* ── 打开一堆：画板压暗，卡片飞到最上面那一层散开 ── */
+.sk-scrim { position: absolute; left: 0; top: 0; right: 0; bottom: var(--sk-shelf-h); z-index: 2; background: color-mix(in srgb, var(--background-primary) 86%, transparent); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity 260ms; }
+.sk-spread-open .sk-scrim { opacity: 1; pointer-events: auto; }
+.sk-dragging .sk-scrim { opacity: .2; }
+.sk-layer { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.sk-card.sk-fly.is-out { pointer-events: auto; }
+.sk-dragging .sk-card.sk-fly.is-out:not(.is-drag) { opacity: .18; }
+.sk-card.sk-fly.is-out:not(.is-on):hover .sk-side { box-shadow: var(--sk-sh-hover); }
+.sk-card.is-pop { animation: sk-pop 260ms ease-out; }
+@keyframes sk-pop { from { opacity: 0; } to { opacity: 1; } }
+/* 卡堆里已经在画板上的那张：纸面压暗、影子收平、左下角一个小圆点，拖不动。 */
+.sk-card.is-on .sk-side { box-shadow: 0 0 0 .5px rgba(40,40,40,.16), 0 1px 2px rgba(30,30,30,.12); background: color-mix(in srgb, var(--face) 84%, #9a9a95); }
+.sk-card.is-on .sk-title { font-weight: 500; color: var(--muted); }
+.sk-card.is-on .sk-front::after { content: ""; position: absolute; bottom: 10px; left: 11px; width: 5px; height: 5px; border-radius: 50%; background: var(--rule); }
+.sk-card.is-on .sk-in { cursor: default; }
+.sk-more { position: absolute; width: 168px; height: 112px; display: grid; place-items: center; border: 1px dashed color-mix(in srgb, var(--text-normal) 28%, transparent); border-radius: 6px; font-family: var(--font-monospace); font-size: 11px; color: var(--text-muted); opacity: 0; pointer-events: auto; cursor: pointer; transition: opacity 240ms 380ms; }
+.sk-more.is-on { opacity: 1; }
+.sk-more:hover { color: var(--text-normal); border-color: var(--sk-sel); }
+.sk-view:focus { outline: none; }

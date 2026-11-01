@@ -2,6 +2,7 @@ import { Menu, TextFileView, TFile, WorkspaceLeaf } from "obsidian";
 import { BoardParseError, buildMoc, History, parseBoardNote, serializeBoardNote } from "../core";
 import type { ParsedBoardNote } from "../core";
 import { BoardCanvas } from "../ui/canvas";
+import { Shelf } from "../ui/shelf";
 import type SkeuomorphicCards from "../main";
 
 export const VIEW_TYPE = "skeuo-board";
@@ -12,6 +13,7 @@ export const VIEW_TYPE = "skeuo-board";
  */
 export class BoardView extends TextFileView {
   canvas!: BoardCanvas;
+  shelf!: Shelf;
   private parsed: ParsedBoardNote | null = null;
   private broken: string | null = null;
   private history = new History();
@@ -26,15 +28,26 @@ export class BoardView extends TextFileView {
 
   async onOpen() {
     this.contentEl.addClass("sk-view");
+    this.contentEl.tabIndex = -1; // 能接住焦点，Esc 才能收起散开的卡堆
     this.canvas = new BoardCanvas(this.contentEl, {
       note: (p) => this.plugin.notes.get(p),
       excerpt: (p) => this.plugin.excerpt(p),
       open: (p, split) => void this.app.workspace.openLinkText(p, this.file?.path ?? "", split ? "split" : false),
       hover: (e, p, el) => this.app.workspace.trigger("hover-link", { event: e, source: VIEW_TYPE, hoverParent: this, targetEl: el, linktext: p, sourcePath: this.file?.path ?? "" }),
-      changed: () => { this.history.commit(this.doc()); this.requestSave(); },
+      changed: () => { this.history.commit(this.doc()); this.requestSave(); this.shelf.refreshOn(); },
       viewChanged: () => this.requestSave(),
     });
+    this.shelf = new Shelf(this.contentEl, {
+      piles: () => this.plugin.piles(),
+      onBoard: (p) => !!this.parsed && this.canvas.has(p),
+      drop: (paths, x, y) => this.canvas.addFiles(paths, this.canvas.toWorld(x, y)),
+      more: (pile) => this.plugin.pickFrom(this, pile),
+      color: (pile) => this.plugin.swatch(pile),
+      setColor: (pile, id) => this.plugin.setFolderColor(pile, id),
+      setDefaultColor: (id) => this.plugin.setDefaultColor(id),
+    });
     this.canvas.root.addEventListener("keydown", (e) => this.onKey(e));
+    this.contentEl.addEventListener("keydown", (e) => { if (e.key === "Escape" && this.shelf.isOpen()) { e.stopPropagation(); this.shelf.close(); } });
   }
 
   // ── 读写 ──
@@ -81,11 +94,14 @@ export class BoardView extends TextFileView {
     }
     this.canvas.root.show();
     this.canvas.load(this.parsed.data);
+    this.shelf.render();
+    this.shelf.refreshOn();
   }
 
   /** 库里的笔记变了（标题、类型、领域）：卡面跟着刷新。 */
   notesChanged(): void {
     if (this.parsed) this.canvas.refreshNotes();
+    this.shelf.render();
   }
 
   private linkOf(path: string): string {
@@ -101,6 +117,7 @@ export class BoardView extends TextFileView {
     Object.assign(this.parsed.data, doc as object);
     this.canvas.load(this.parsed.data);
     this.requestSave();
+    this.shelf.refreshOn();
   }
   undo() { this.restore(this.history.undo()); }
   redo() { this.restore(this.history.redo()); }
@@ -116,7 +133,8 @@ export class BoardView extends TextFileView {
     } else if (e.key === "Delete" || e.key === "Backspace") {
       if (this.canvas.removeSelected()) e.preventDefault();
     } else if (e.key === "Escape") {
-      this.canvas.clearSel();
+      if (this.shelf.isOpen()) this.shelf.close();
+      else this.canvas.clearSel();
     }
   }
 

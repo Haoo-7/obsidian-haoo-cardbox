@@ -2,6 +2,7 @@ import { packDrop, removeNodes } from "../core";
 import type { BoardData, BoardNode, Point, VaultNote } from "../core";
 import { CARD_H, CARD_W, fillExcerpt, makeCard, pose } from "./card";
 import { bindCard, bindViewport } from "./interact";
+import { Ink } from "./ink";
 import { Links } from "./links";
 
 /** 画板要从视图拿的东西。画板本身不碰文件，只改 data 并通知视图。 */
@@ -29,6 +30,7 @@ export class BoardCanvas {
   readonly items = new Map<string, Item>();
   data!: BoardData;
   readonly links: Links;
+  readonly ink: Ink;
   private zoomLabel: HTMLElement;
 
   constructor(parent: HTMLElement, readonly host: CanvasHost) {
@@ -37,6 +39,7 @@ export class BoardCanvas {
     this.content = this.vp.createDiv({ cls: "sk-content" });
     this.zoomLabel = this.root.createDiv({ cls: "sk-zoom" });
     this.links = new Links(this);
+    this.ink = new Ink(this);
     bindViewport(this);
   }
 
@@ -47,6 +50,7 @@ export class BoardCanvas {
     this.items.clear();
     data.nodes.forEach((n) => this.mountNode(n));
     this.links.load();
+    this.ink.load();
     this.applyView();
   }
 
@@ -115,19 +119,20 @@ export class BoardCanvas {
   select(it: Item, add: boolean): void {
     if (!add) this.items.forEach((o) => o !== it && o.el.removeClass("is-sel"));
     it.el.toggleClass("is-sel", add ? !it.el.hasClass("is-sel") : true);
-    if (!add) this.links.clearSel();
+    if (!add) { this.links.clearSel(); this.ink.clearSel(); }
     else this.links.render();
   }
   clearSel(): void {
     this.items.forEach((o) => o.el.removeClass("is-sel"));
     this.links.clearSel();
+    this.ink.clearSel();
   }
 
-  /** 把选中的卡从画板上拿下来（不删原笔记），连着它们的线一起删；选中的连线也删。一次按键只记一步历史。 */
+  /** 把选中的卡从画板上拿下来（不删原笔记），连着它们的线一起删；选中的连线、标注也删。一次按键只记一步历史。 */
   removeSelected(): boolean {
     const ids = this.selected().map((it) => it.node.id);
-    const lines = this.links.dropSelected();
-    if (!ids.length && !lines) return false;
+    const lines = this.links.dropSelected(), marks = this.ink.dropSelected();
+    if (!ids.length && !lines && !marks) return false;
     if (ids.length) {
       const next = removeNodes(this.data, ids);
       this.data.nodes = next.nodes;
@@ -168,6 +173,7 @@ export class BoardCanvas {
     }
     this.root.toggleClass("is-tiny", v.zoom < TINY);
     this.zoomLabel.setText(`${Math.round(v.zoom * 100)}%`);
+    this.ink.zoomed();
   }
 }
 

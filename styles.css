@@ -191,3 +191,71 @@
 .sk-board.is-linking .sk-l-port, .sk-card.is-drag .sk-l-port, .sk-board.is-tiny .sk-l-port { opacity: 0 !important; }
 .sk-board.is-linking, .sk-board.is-linking * { cursor: crosshair !important; }
 .sk-board.is-linking .sk-card.is-target .sk-side { box-shadow: var(--sk-sh-hover), 0 0 0 2px var(--background-primary), 0 0 0 3.5px var(--sk-sel); }
+
+/* ── 标注：笔迹、直线、矩形、文字。在卡片之上、拖着的卡之下 ── */
+/* 三种颜色存名字不存色值，换主题时跟着变：墨（蓝灰墨）、赭（橙压暗）、靛（蓝压暗）。 */
+.sk-view { --sk-i-ink: #2b3646; --sk-i-rust: color-mix(in srgb, #ec7500 70%, #2b2620); --sk-i-blue: color-mix(in srgb, #086ddd 55%, #24303f); }
+.theme-dark .sk-view { --sk-i-ink: #d9dde3; --sk-i-rust: #e6a46a; --sk-i-blue: #8fb6e6; }
+.sk-i-svg, .sk-i-ui { position: absolute; left: -10000px; top: -10000px; overflow: visible; pointer-events: none; }
+.sk-i-svg { z-index: 40; }
+.sk-i-ui { z-index: 42; }
+.sk-i-stroke { fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .9; transition: opacity 140ms; }
+.sk-i-stroke[data-c="ink"] { stroke: var(--sk-i-ink); }
+.sk-i-stroke[data-c="rust"] { stroke: var(--sk-i-rust); }
+.sk-i-stroke[data-c="blue"] { stroke: var(--sk-i-blue); }
+.sk-i-stroke.is-sel { opacity: 1; }
+.sk-i-stroke.is-near, .sk-i-text.is-near { opacity: .35; }
+.sk-i-stroke.is-gone, .sk-i-text.is-gone { opacity: 0; }
+/* 选择模式下标注可以点：SVG 的标注靠叠在上面那条看不见的粗线。矩形只有边框能点，框里照样点得到卡。 */
+.sk-i-hit { fill: none; stroke: transparent; stroke-width: 14px; pointer-events: none; }
+.sk-board[data-ink="select"] .sk-i-hit { pointer-events: stroke; cursor: move; }
+
+/* 文字：直接写在画板上，跟笔迹同色。文字层本身宽 0，不写 max-content 的话每个字会各占一行。 */
+.sk-i-texts { position: absolute; left: 0; top: 0; z-index: 41; }
+.sk-i-text {
+  position: absolute; width: max-content; min-width: 8px; max-width: 320px; padding: 2px 4px; border-radius: 4px;
+  font: 500 15px/1.45 var(--font-interface); white-space: pre-wrap; overflow-wrap: anywhere;
+  opacity: .92; pointer-events: none; outline: none; transition: opacity 140ms;
+}
+.sk-i-text[data-c="ink"] { color: var(--sk-i-ink); }
+.sk-i-text[data-c="rust"] { color: var(--sk-i-rust); }
+.sk-i-text[data-c="blue"] { color: var(--sk-i-blue); }
+.sk-board[data-ink="select"] .sk-i-text { pointer-events: auto; cursor: move; }
+.sk-board .sk-i-text.is-editing {
+  pointer-events: auto; cursor: text; min-width: 120px; -webkit-user-select: text; user-select: text;
+  background: color-mix(in srgb, var(--background-primary) 88%, transparent); box-shadow: 0 0 0 1.5px var(--sk-sel);
+}
+.sk-i-text.is-editing:empty::before { content: "输入文字"; color: var(--text-faint); }
+
+/* 选中：笔迹和文字外面一圈虚线框；把手是白底的小圆点，曲线中间那个实心。 */
+.sk-i-box { fill: none; stroke: var(--sk-sel); stroke-width: 1.25px; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
+.sk-i-handle { fill: var(--background-primary); stroke: var(--sk-sel); stroke-width: 1.5px; vector-effect: non-scaling-stroke; pointer-events: all; cursor: grab; }
+.sk-i-handle.is-mid { fill: var(--sk-sel); }
+.sk-i-handle:active { cursor: grabbing; }
+
+/* 画图时盖在画板上的一层，接住指针；放在视口里，滚轮照样平移缩放。 */
+.sk-i-pad { position: absolute; inset: 0; z-index: 1; display: none; }
+.sk-board[data-ink="pen"] .sk-i-pad, .sk-board[data-ink="line"] .sk-i-pad, .sk-board[data-ink="rect"] .sk-i-pad { display: block; cursor: crosshair; }
+.sk-board[data-ink="text"] .sk-i-pad { display: block; cursor: text; }
+.sk-board[data-ink="eraser"] .sk-i-pad { display: block; cursor: none; }
+.sk-i-ring { position: absolute; display: block; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; pointer-events: none; box-shadow: 0 0 0 1.25px var(--text-normal), inset 0 0 0 1px var(--background-primary); }
+
+/* 工具条：画板左下角一枚小胶囊。画图的工具、或者选中了标注时，右边出现三种颜色。 */
+.sk-i-bar {
+  position: absolute; left: 14px; bottom: 14px; z-index: 1;
+  display: flex; align-items: center; gap: 2px; padding: 4px;
+  border-radius: 11px; background: var(--background-primary);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--text-normal) 10%, transparent), 0 6px 16px -8px color-mix(in srgb, black 30%, transparent);
+}
+.sk-view .sk-i-tool { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border-radius: 8px; color: var(--text-muted); }
+.sk-view .sk-i-tool svg { width: 17px; height: 17px; stroke-width: 1.75; }
+.sk-view .sk-i-tool:hover { color: var(--text-normal); }
+.sk-view .sk-i-tool.is-active { background: color-mix(in srgb, var(--sk-sel) 14%, var(--background-primary)); color: var(--sk-sel); }
+.sk-i-sep, .sk-i-dots { display: none; }
+.sk-i-colors .sk-i-sep { display: block; width: 1px; height: 18px; margin: 0 5px; background: color-mix(in srgb, var(--text-normal) 12%, transparent); }
+.sk-i-colors .sk-i-dots { display: flex; gap: 6px; padding-right: 4px; }
+.sk-view .sk-i-dot { width: 16px; height: 16px; min-width: 0; padding: 0; border: 0; border-radius: 50%; box-shadow: none; cursor: pointer; }
+.sk-view .sk-i-dot[data-c="ink"] { background: var(--sk-i-ink); }
+.sk-view .sk-i-dot[data-c="rust"] { background: var(--sk-i-rust); }
+.sk-view .sk-i-dot[data-c="blue"] { background: var(--sk-i-blue); }
+.sk-view .sk-i-dot.is-active { box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 3.5px var(--text-normal); }

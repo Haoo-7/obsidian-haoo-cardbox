@@ -2,6 +2,7 @@ import { Menu, TextFileView, TFile, WorkspaceLeaf } from "obsidian";
 import { BoardParseError, buildMoc, History, parseBoardNote, serializeBoardNote } from "../core";
 import type { ParsedBoardNote } from "../core";
 import { BoardCanvas } from "../ui/canvas";
+import { MODE_KEYS } from "../ui/ink";
 import { Shelf } from "../ui/shelf";
 import type SkeuomorphicCards from "../main";
 
@@ -134,7 +135,11 @@ export class BoardView extends TextFileView {
       if (this.canvas.removeSelected()) e.preventDefault();
     } else if (e.key === "Escape") {
       if (this.shelf.isOpen()) this.shelf.close();
+      else if (this.canvas.ink.mode !== "select") this.canvas.ink.setMode("select");
       else this.canvas.clearSel();
+    } else if (!mod && !e.altKey && MODE_KEYS[e.key.toLowerCase()]) {
+      // V 选择、P 画笔、L 直线、R 矩形、T 文字、E 橡皮擦。
+      this.canvas.ink.setMode(MODE_KEYS[e.key.toLowerCase()]);
     }
   }
 

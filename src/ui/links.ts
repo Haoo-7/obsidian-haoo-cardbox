@@ -78,7 +78,7 @@ export class Links {
   }
 
   private pick(e: E, add: boolean): void {
-    if (!add) { this.c.items.forEach((o) => o.el.removeClass("is-sel")); this.list.forEach((o) => (o.sel = false)); }
+    if (!add) { this.c.items.forEach((o) => o.el.removeClass("is-sel")); this.list.forEach((o) => (o.sel = false)); this.c.ink.clearSel(); }
     e.sel = add ? !e.sel : true;
     this.render();
   }

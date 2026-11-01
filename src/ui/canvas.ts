@@ -2,6 +2,7 @@ import { packDrop, removeNodes } from "../core";
 import type { BoardData, BoardNode, Point, VaultNote } from "../core";
 import { CARD_H, CARD_W, fillExcerpt, makeCard, pose } from "./card";
 import { bindCard, bindViewport } from "./interact";
+import { Links } from "./links";
 
 /** 画板要从视图拿的东西。画板本身不碰文件，只改 data 并通知视图。 */
 export interface CanvasHost {
@@ -27,6 +28,7 @@ export class BoardCanvas {
   readonly content: HTMLElement;
   readonly items = new Map<string, Item>();
   data!: BoardData;
+  readonly links: Links;
   private zoomLabel: HTMLElement;
 
   constructor(parent: HTMLElement, readonly host: CanvasHost) {
@@ -34,6 +36,7 @@ export class BoardCanvas {
     this.vp = this.root.createDiv({ cls: "sk-viewport" });
     this.content = this.vp.createDiv({ cls: "sk-content" });
     this.zoomLabel = this.root.createDiv({ cls: "sk-zoom" });
+    this.links = new Links(this);
     bindViewport(this);
   }
 
@@ -43,6 +46,7 @@ export class BoardCanvas {
     this.items.forEach((it) => it.el.remove());
     this.items.clear();
     data.nodes.forEach((n) => this.mountNode(n));
+    this.links.load();
     this.applyView();
   }
 
@@ -74,6 +78,7 @@ export class BoardCanvas {
     pose(it.el, node, 0);
     this.content.appendChild(it.el);
     bindCard(this, it);
+    this.links.ports(it);
     // 存档里本来就翻着面的卡，打开画板时也要把背面的正文开头读出来。
     if (node.flipped && !node.missing) {
       const el = it.el;
@@ -110,19 +115,26 @@ export class BoardCanvas {
   select(it: Item, add: boolean): void {
     if (!add) this.items.forEach((o) => o !== it && o.el.removeClass("is-sel"));
     it.el.toggleClass("is-sel", add ? !it.el.hasClass("is-sel") : true);
+    if (!add) this.links.clearSel();
+    else this.links.render();
   }
   clearSel(): void {
     this.items.forEach((o) => o.el.removeClass("is-sel"));
+    this.links.clearSel();
   }
 
-  /** 把选中的卡从画板上拿下来（不删原笔记），连着它们的线一起删。 */
+  /** 把选中的卡从画板上拿下来（不删原笔记），连着它们的线一起删；选中的连线也删。一次按键只记一步历史。 */
   removeSelected(): boolean {
     const ids = this.selected().map((it) => it.node.id);
-    if (!ids.length) return false;
-    const next = removeNodes(this.data, ids);
-    this.data.nodes = next.nodes;
-    this.data.edges = next.edges;
-    ids.forEach((id) => { this.items.get(id)!.el.remove(); this.items.delete(id); });
+    const lines = this.links.dropSelected();
+    if (!ids.length && !lines) return false;
+    if (ids.length) {
+      const next = removeNodes(this.data, ids);
+      this.data.nodes = next.nodes;
+      this.data.edges = next.edges;
+      ids.forEach((id) => { this.items.get(id)!.el.remove(); this.items.delete(id); });
+      this.links.load(); // 拿下的卡连着的线一起没了
+    }
     this.host.changed();
     return true;
   }

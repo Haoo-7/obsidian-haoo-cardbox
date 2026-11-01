@@ -16,6 +16,8 @@ export function bindCard(c: BoardCanvas, it: Item): void {
     e.stopPropagation();
     e.preventDefault();
     c.root.focus({ preventScroll: true });
+    // 按住 ⌥ 从卡面拖：拉一条连线，不挪卡片。
+    if (e.altKey) { c.links.start(it, e); return; }
     const add = e.shiftKey;
     // 按下就选中，不等松手：点下去的那一刻就要看到选中环。
     // 已经选中的卡要等松手再处理：可能是要拖着整组走，也可能是 ⇧ 单击取消选中。
@@ -33,6 +35,7 @@ export function bindCard(c: BoardCanvas, it: Item): void {
       if (!moved && Math.hypot(ev.clientX - e.clientX, ev.clientY - e.clientY) < 3) return;
       if (!moved) { moved = true; el.removeClass("is-press"); group.forEach((g) => g.el.addClass("is-drag")); }
       group.forEach((g, i) => { g.node.x = start[i][0] + dx; g.node.y = start[i][1] + dy; pose(g.el, g.node, 0); });
+      c.links.render();
       tilt(ev.clientX - lastX);
       lastX = ev.clientX;
     };

@@ -15,7 +15,8 @@ export interface CanvasHost {
   viewChanged(): void;
 }
 
-export interface Item { node: BoardNode; el: HTMLElement; }
+/** sig：画这张卡时用的笔记内容，用来判断要不要重画。 */
+export interface Item { node: BoardNode; el: HTMLElement; sig?: string; }
 
 /** 缩小到这个比例以下，卡片只显示纸色和标题前 4 个字。 */
 const TINY = 0.55;
@@ -45,9 +46,13 @@ export class BoardCanvas {
     this.applyView();
   }
 
-  /** 笔记的标题、类型、领域变了：只重画卡面，位置和选中不动。 */
+  /**
+   * 笔记的标题、类型、领域变了：只重画内容真的变了的那几张，位置和选中不动。
+   * 不能全部重画：正在被点、被拖的那张卡如果在这时被换掉，这一下单击或双击就丢了。
+   */
   refreshNotes(): void {
     this.items.forEach((it) => {
+      if (this.sigOf(it.node) === it.sig) return;
       const sel = it.el.hasClass("is-sel");
       it.el.remove();
       this.renderNode(it);
@@ -56,8 +61,13 @@ export class BoardCanvas {
   }
 
   // 先把新元素挂到 it 上再绑事件：事件里用的是 it.el，重画后要指向新的那张。
+  private sigOf(node: BoardNode): string {
+    return JSON.stringify(node.missing ? null : this.host.note(node.file) ?? null);
+  }
+
   private renderNode(it: Item): void {
     const { node } = it;
+    it.sig = this.sigOf(node);
     it.el = makeCard(node.missing ? undefined : this.host.note(node.file), node.file);
     it.el.addClass("on-board");
     if (node.flipped) it.el.addClass("is-flip");

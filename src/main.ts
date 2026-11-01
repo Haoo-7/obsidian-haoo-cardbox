@@ -27,7 +27,12 @@ export default class SkeuomorphicCards extends Plugin {
       this.app.workspace.getLeavesOfType("markdown").forEach((l) => this.maybeBoard(l.view as MarkdownView));
     });
     this.registerEvent(this.app.metadataCache.on("resolved", () => this.scheduleRebuild()));
-    this.registerEvent(this.app.metadataCache.on("changed", (f) => { this.excerpts.delete(f.path); this.scheduleRebuild(); }));
+    this.registerEvent(this.app.metadataCache.on("changed", (f, _data, cache) => {
+      this.excerpts.delete(f.path);
+      // 画板笔记每挪一次卡就保存一次，它自己不是卡片，不用为它重建整个库的快照。
+      if (cache.frontmatter?.["skeuo-board"] && this.notes.get(f.path)?.isBoard) return;
+      this.scheduleRebuild();
+    }));
     this.registerEvent(this.app.vault.on("delete", () => this.scheduleRebuild()));
     this.registerEvent(this.app.vault.on("rename", () => this.scheduleRebuild()));
     this.registerEvent(this.app.workspace.on("file-open", () => {

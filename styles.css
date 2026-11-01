@@ -73,7 +73,12 @@
 /* ── 卡片的状态 ── */
 .sk-card.on-board:not(.is-drag):hover .sk-in { --hy: -3px; }
 .sk-card.on-board:not(.is-drag):hover .sk-side { box-shadow: var(--sk-sh-hover); }
-.sk-card.is-sel .sk-front, .sk-card.is-sel .sk-back { box-shadow: var(--sk-sh-rest), 0 0 0 2px var(--background-primary), 0 0 0 3.5px var(--sk-sel); }
+/* 选中环用 outline，不和悬停、拿起时的 box-shadow 抢同一个属性：
+   原来写在 box-shadow 里，悬停规则优先级更高，鼠标一停在卡上选中环就被盖掉了。 */
+.sk-card.is-sel .sk-side { outline: 1.5px solid var(--sk-sel); outline-offset: 2px; }
+/* 按下的那一刻：卡片微微浮起、影子变深，不等松手就有反馈。 */
+.sk-card.is-press .sk-in { --ls: 1.02; transition: transform 90ms ease-out; }
+.sk-card.is-press .sk-side { box-shadow: var(--sk-sh-hover); }
 .sk-card.is-flip .sk-in { --fy: 180deg; }
 .sk-card.is-drag { z-index: 50; transition: none; }
 .sk-card.is-drag .sk-in { --ls: 1.04; cursor: grabbing; transition: transform 120ms; }

@@ -65,7 +65,7 @@ export default class HaooCardbox extends Plugin {
     // 换主题时，跟着主题走的文件夹颜色要换一遍。
     this.registerEvent(this.app.workspace.on("css-change", () => this.repaint()));
 
-    this.addRibbonIcon("layout-dashboard", "新建画板", () => void this.newBoard());
+    this.addRibbonIcon("boxes", "新建画板", () => void this.newBoard());
     this.addCommand({ id: "new-board", name: "新建画板", callback: () => void this.newBoard() });
     this.addCommand({
       id: "add-card",

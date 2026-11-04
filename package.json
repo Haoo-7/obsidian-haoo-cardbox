@@ -1,6 +1,6 @@
 {
   "name": "obsidian-haoo-cardbox",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Haoo Cardbox：把笔记按领域装进文件夹，摊开挑卡，摆上画板连线勾画，排成 MOC 骨架的 Obsidian 插件",
   "main": "main.js",
   "private": true,

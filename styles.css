@@ -1,0 +1,261 @@
+/* 拟物卡片盒。类名都带 sk- 前缀，免得和 Obsidian 或别的插件撞。颜色跟着 Obsidian 主题走（body.theme-dark）。 */
+.sk-view {
+  --sk-serif: "Songti SC", "Source Han Serif SC", "Noto Serif CJK SC", "Noto Serif SC", Georgia, serif;
+  --sk-dim: 1;
+  --sk-sel: color-mix(in srgb, #086ddd 45%, #24303f);
+  --sk-sh-rest: inset 0 1px 0 rgba(255,255,255,.5), 0 0 0 .5px rgba(40,40,40,.12), 0 2px 4px -1px rgba(30,30,30,.12), 0 16px 28px -14px rgba(30,30,30,.28);
+  --sk-sh-hover: inset 0 1px 0 rgba(255,255,255,.5), 0 0 0 .5px rgba(40,40,40,.12), 0 4px 8px -2px rgba(30,30,30,.14), 0 22px 36px -16px rgba(30,30,30,.34);
+  --sk-sh-lift: inset 0 1px 0 rgba(255,255,255,.5), 0 0 0 .5px rgba(40,40,40,.10), 0 8px 14px -4px rgba(30,30,30,.16), 0 34px 52px -20px rgba(30,30,30,.42);
+  padding: 0 !important;
+  overflow: hidden;
+}
+.theme-dark .sk-view {
+  --sk-dim: .86;
+  --sk-sel: #9cc0e8;
+  --sk-sh-rest: inset 0 1px 0 rgba(255,255,255,.35), 0 0 0 .5px rgba(0,0,0,.5), 0 2px 4px -1px rgba(0,0,0,.4), 0 16px 28px -12px rgba(0,0,0,.6);
+  --sk-sh-hover: inset 0 1px 0 rgba(255,255,255,.35), 0 0 0 .5px rgba(0,0,0,.5), 0 4px 8px -2px rgba(0,0,0,.45), 0 22px 36px -14px rgba(0,0,0,.7);
+  --sk-sh-lift: inset 0 1px 0 rgba(255,255,255,.35), 0 0 0 .5px rgba(0,0,0,.5), 0 8px 14px -4px rgba(0,0,0,.5), 0 34px 52px -18px rgba(0,0,0,.8);
+}
+
+/* ── 画板：占卡堆栏以上的整块 ── */
+.sk-view { --sk-shelf-h: 236px; position: relative; }
+.sk-board { position: absolute; left: 0; top: 0; right: 0; bottom: var(--sk-shelf-h); outline: none; -webkit-user-select: none; user-select: none; }
+.sk-viewport {
+  position: absolute; inset: 0; overflow: hidden;
+  background-color: var(--background-primary);
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--text-normal) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--text-normal) 5%, transparent) 1px, transparent 1px);
+  background-size: calc(28px * var(--z, 1)) calc(28px * var(--z, 1));
+  background-position: var(--vx, 0) var(--vy, 0);
+}
+.sk-viewport.is-pan { cursor: grabbing; }
+.sk-content { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; transform: translate(var(--vx, 0), var(--vy, 0)) scale(var(--z, 1)); }
+.sk-zoom { position: absolute; right: 14px; top: 12px; font-family: var(--font-monospace); font-size: 11px; color: var(--text-muted); pointer-events: none; }
+
+/* ── 卡片：色卡纸·改，扉页版式 ── */
+.sk-card {
+  --h: calc(var(--k) * 36 + 12);
+  --face: hsl(var(--h) 30% 88%); --ink: #24303f; --muted: #4f5866; --rule: #24303f;
+  position: absolute; left: 0; top: 0; width: 168px; height: 112px; touch-action: none;
+  transform: translate(var(--x, 0), var(--y, 0)) rotate(var(--r, 0deg)) scale(var(--s, 1));
+  transform-origin: 50% 50%; perspective: 900px;
+  transition: transform var(--dur, 260ms) cubic-bezier(.2, .8, .2, 1) var(--d, 0ms), opacity 240ms;
+}
+.sk-card[data-type="permanent"] { --face: #2f4a3c; --ink: #f2ecdc; --muted: #c3cab9; --rule: #d9c9a0; }
+.sk-card[data-type="fleeting"] { --face: #ecd99a; --ink: #3a2f12; --muted: #5e4f24; --rule: #3a2f12; }
+.sk-card[data-type="uncategorized"] { --face: #ddd8cf; --ink: #2b2925; --muted: #55504a; --rule: #2b2925; }
+.sk-in {
+  position: absolute; inset: 0; transform-style: preserve-3d; cursor: grab;
+  transform: translateY(var(--hy, 0)) rotate(var(--tilt, 0deg)) scale(var(--ls, 1)) rotateY(var(--fy, 0deg));
+  transition: transform 280ms cubic-bezier(.3, .7, .2, 1);
+}
+.sk-side {
+  position: absolute; inset: 0; border-radius: 6px; overflow: hidden;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  background: var(--face); color: var(--ink); box-shadow: var(--sk-sh-rest); filter: brightness(var(--sk-dim));
+  transition: box-shadow 220ms;
+}
+.sk-front { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 16px; text-align: center; }
+.sk-tag { max-width: 100%; margin-bottom: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; letter-spacing: .18em; color: var(--muted); }
+.sk-title {
+  margin: 0; font-family: var(--sk-serif); font-size: 15.5px; line-height: 21px; font-weight: 600; color: var(--ink);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; text-wrap: pretty; overflow-wrap: anywhere;
+}
+.sk-date { position: relative; margin-top: 8px; padding-top: 7px; font-size: 9px; letter-spacing: .08em; font-variant-numeric: tabular-nums; color: var(--muted); }
+.sk-date::before { content: ""; position: absolute; top: 0; left: 50%; width: 28px; margin-left: -14px; border-top: 1.5px solid var(--rule); }
+.sk-tiny { display: none; }
+.sk-back { transform: rotateY(180deg); display: flex; flex-direction: column; padding: 11px 13px 10px; text-align: left; }
+.sk-ex { margin: 0; font-size: 10.5px; line-height: 15px; color: var(--ink); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.sk-rows { margin-top: auto; padding-top: 6px; border-top: 1px solid color-mix(in srgb, var(--ink) 16%, transparent); font-size: 9.5px; line-height: 14px; color: var(--muted); }
+.sk-rows div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sk-rows span { margin-right: 6px; font-weight: 600; }
+
+/* ── 卡片的状态 ── */
+.sk-card.on-board:not(.is-drag):hover .sk-in { --hy: -3px; }
+.sk-card.on-board:not(.is-drag):hover .sk-side { box-shadow: var(--sk-sh-hover); }
+/* 选中环用 outline，不和悬停、拿起时的 box-shadow 抢同一个属性：
+   原来写在 box-shadow 里，悬停规则优先级更高，鼠标一停在卡上选中环就被盖掉了。 */
+.sk-card.is-sel .sk-side { outline: 1.5px solid var(--sk-sel); outline-offset: 2px; }
+/* 按下的那一刻：卡片微微浮起、影子变深，不等松手就有反馈。 */
+.sk-card.is-press .sk-in { --ls: 1.02; transition: transform 90ms ease-out; }
+.sk-card.is-press .sk-side { box-shadow: var(--sk-sh-hover); }
+.sk-card.is-flip .sk-in { --fy: 180deg; }
+.sk-card.is-drag { z-index: 50; transition: none; }
+.sk-card.is-drag .sk-in { --ls: 1.04; cursor: grabbing; transition: transform 120ms; }
+.sk-card.is-drag .sk-side { box-shadow: var(--sk-sh-lift); }
+/* 落定的动画会盖掉内层 transform，翻着面的卡不做，免得落地时翻回正面。 */
+.sk-card.is-settle:not(.is-flip) .sk-in { animation: sk-settle 140ms cubic-bezier(.3, .7, .3, 1); }
+@keyframes sk-settle { 0% { transform: scale(1.04) rotate(var(--tilt, 0deg)); } 60% { transform: scale(.99); } 100% { transform: none; } }
+/* 缺失：原笔记被删了，只剩虚线框，连线保留。 */
+.sk-card.is-miss .sk-side { background: transparent; box-shadow: none; filter: none; border: 1.25px dashed color-mix(in srgb, var(--text-normal) 34%, transparent); }
+.sk-card.is-miss .sk-title { color: var(--text-muted); font-weight: 500; }
+.sk-card.is-miss .sk-tag, .sk-card.is-miss .sk-date { color: var(--text-muted); }
+.sk-card.is-miss .sk-date::before { border-color: color-mix(in srgb, var(--text-normal) 30%, transparent); }
+/* 缩小态：只剩纸色和标题前 4 个字，字号按缩放反向放大，屏幕上保持可读。 */
+.sk-board.is-tiny .sk-card.on-board .sk-tag, .sk-board.is-tiny .sk-card.on-board .sk-title, .sk-board.is-tiny .sk-card.on-board .sk-date { display: none; }
+.sk-board.is-tiny .sk-card.on-board .sk-tiny { display: block; font-family: var(--sk-serif); font-weight: 600; font-size: calc(13px / var(--z)); letter-spacing: .04em; }
+
+/* ── 读不出来的画板 ── */
+.sk-broken { max-width: 420px; margin: 18vh auto 0; padding: 0 24px; color: var(--text-normal); }
+.sk-broken-why { color: var(--text-muted); font-size: var(--font-ui-small); }
+@media (prefers-reduced-motion: reduce) { .sk-card, .sk-in { transition-duration: 1ms !important; } }
+
+/* ── 卡堆栏：画板下面一条底座，一排文件夹，太多时横向滚动 ── */
+.sk-shelf { position: absolute; left: 0; right: 0; bottom: 0; height: var(--sk-shelf-h); z-index: 3; background: color-mix(in srgb, var(--text-normal) 3%, var(--background-primary)); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-normal) 8%, transparent); }
+.sk-strip { display: flex; gap: 32px; height: 100%; padding: 64px 28px 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.sk-shelf-empty { align-self: center; margin-top: -60px; color: var(--text-muted); font-size: var(--font-ui-small); }
+.sk-folder { position: relative; flex: 0 0 190px; width: 190px; height: 140px; cursor: pointer; }
+.sk-f-back, .sk-f-front { position: absolute; left: 0; width: 190px; transition: filter 260ms, transform 320ms cubic-bezier(.2, .8, .2, 1); }
+.sk-f-cards { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.sk-f-back, .sk-f-front {
+  --fc: #e9eaee;
+  --f-back: color-mix(in srgb, var(--fc) 82%, black); --f-top: color-mix(in srgb, var(--fc) 72%, white); --f-bot: var(--fc);
+  --f-line: color-mix(in srgb, black 10%, transparent); --f-ink: color-mix(in srgb, black 82%, var(--fc)); --f-ink-soft: color-mix(in srgb, black 52%, var(--fc));
+}
+.sk-f-back[data-ink="light"], .sk-f-front[data-ink="light"] {
+  --f-back: color-mix(in srgb, var(--fc) 70%, black); --f-top: color-mix(in srgb, var(--fc) 62%, white);
+  --f-line: color-mix(in srgb, white 9%, transparent); --f-ink: color-mix(in srgb, white 92%, var(--fc)); --f-ink-soft: color-mix(in srgb, white 62%, var(--fc));
+}
+.sk-f-back { top: 0; z-index: 1; height: 140px; border-radius: 14px; background: var(--f-back); box-shadow: inset 0 0 0 1px var(--f-line), 0 18px 30px -16px color-mix(in srgb, black 45%, transparent); }
+.sk-f-back::before, .sk-f-back::after { content: ""; position: absolute; top: 9px; height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--f-ink) 28%, transparent); }
+.sk-f-back::before { left: 14px; width: 22px; }
+.sk-f-back::after { left: 41px; width: 13px; }
+.sk-f-front {
+  top: 36px; z-index: 3; height: 104px;
+  clip-path: path("M0 32 Q0 18 14 18 L96 18 Q106 18 112 10 L118 3 Q121 0 128 0 L176 0 Q190 0 190 14 L190 90 Q190 104 176 104 L14 104 Q0 104 0 90 Z");
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--f-top) 84%, transparent) 0%, color-mix(in srgb, var(--f-bot) 97%, transparent) 62%);
+  -webkit-backdrop-filter: blur(9px) saturate(1.1); backdrop-filter: blur(9px) saturate(1.1);
+}
+.sk-f-front svg { position: absolute; inset: 0; overflow: visible; }
+.sk-f-name { position: absolute; left: 16px; bottom: 30px; max-width: 158px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 500; color: var(--f-ink); }
+.sk-f-count { position: absolute; left: 16px; bottom: 14px; font-family: var(--font-monospace); font-size: 10px; color: var(--f-ink-soft); }
+.sk-folder:hover .sk-f-front { transform: translateY(3px); }
+.sk-folder.is-open .sk-f-front { transform: translateY(6px); }
+.sk-folder.is-dim .sk-f-back, .sk-folder.is-dim .sk-f-front, .sk-folder.is-dim .sk-f-cards { filter: brightness(1.04) contrast(.55) saturate(.4); }
+.theme-dark .sk-folder.is-dim .sk-f-back, .theme-dark .sk-folder.is-dim .sk-f-front, .theme-dark .sk-folder.is-dim .sk-f-cards { filter: brightness(.5) saturate(.5); }
+
+/* ── 打开一堆：画板压暗，卡片飞到最上面那一层散开 ── */
+.sk-scrim { position: absolute; left: 0; top: 0; right: 0; bottom: var(--sk-shelf-h); z-index: 2; background: color-mix(in srgb, var(--background-primary) 86%, transparent); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity 260ms; }
+.sk-spread-open .sk-scrim { opacity: 1; pointer-events: auto; }
+.sk-dragging .sk-scrim { opacity: .2; }
+.sk-layer { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.sk-card.sk-fly.is-out { pointer-events: auto; }
+.sk-dragging .sk-card.sk-fly.is-out:not(.is-drag) { opacity: .18; }
+.sk-card.sk-fly.is-out:not(.is-on):hover .sk-side { box-shadow: var(--sk-sh-hover); }
+.sk-card.is-pop { animation: sk-pop 260ms ease-out; }
+@keyframes sk-pop { from { opacity: 0; } to { opacity: 1; } }
+/* 卡堆里已经在画板上的那张：纸面压暗、影子收平、左下角一个小圆点，拖不动。 */
+.sk-card.is-on .sk-side { box-shadow: 0 0 0 .5px rgba(40,40,40,.16), 0 1px 2px rgba(30,30,30,.12); background: color-mix(in srgb, var(--face) 84%, #9a9a95); }
+.sk-card.is-on .sk-title { font-weight: 500; color: var(--muted); }
+.sk-card.is-on .sk-front::after { content: ""; position: absolute; bottom: 10px; left: 11px; width: 5px; height: 5px; border-radius: 50%; background: var(--rule); }
+.sk-card.is-on .sk-in { cursor: default; }
+.sk-more { position: absolute; width: 168px; height: 112px; display: grid; place-items: center; border: 1px dashed color-mix(in srgb, var(--text-normal) 28%, transparent); border-radius: 6px; font-family: var(--font-monospace); font-size: 11px; color: var(--text-muted); opacity: 0; pointer-events: auto; cursor: pointer; transition: opacity 240ms 380ms; }
+.sk-more.is-on { opacity: 1; }
+.sk-more:hover { color: var(--text-normal); border-color: var(--sk-sel); }
+.sk-view:focus { outline: none; }
+
+/* ── 连线：在卡片下面，随画板一起平移缩放 ── */
+.sk-view { --sk-l-ink: color-mix(in srgb, #24303f 46%, transparent); --sk-l-ink-soft: color-mix(in srgb, #24303f 22%, transparent); --sk-l-text: #3e4757; }
+.theme-dark .sk-view { --sk-l-ink: color-mix(in srgb, #dadada 40%, transparent); --sk-l-ink-soft: color-mix(in srgb, #dadada 24%, transparent); --sk-l-text: #c9cdd3; }
+.sk-l-svg { position: absolute; left: -10000px; top: -10000px; overflow: visible; pointer-events: none; }
+.sk-l-line { fill: none; stroke: var(--sk-l-ink); stroke-width: 1.5; stroke-linecap: round; transition: stroke 160ms, stroke-width 160ms; }
+.sk-l-hit { fill: none; stroke: transparent; stroke-width: 14; pointer-events: stroke; cursor: pointer; }
+.sk-l-edge.is-hot .sk-l-line { stroke: var(--sk-sel); stroke-width: 1.75; }
+.sk-l-edge.is-sel .sk-l-line { stroke: var(--sk-sel); stroke-width: 2.25; }
+.sk-l-tmp { fill: none; stroke: var(--sk-sel); stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 4 5; }
+/* 标签：连线中点一枚小牌子，底色同画板。 */
+.sk-l-labels { position: absolute; left: 0; top: 0; }
+.sk-l-lab, .sk-l-edit {
+  position: absolute; transform: translate(-50%, -50%);
+  padding: 2px 8px; border-radius: 9px;
+  background: var(--background-primary); color: var(--sk-l-text);
+  box-shadow: 0 0 0 1px var(--sk-l-ink-soft);
+  font: 500 11px/16px var(--font-interface); letter-spacing: .04em; white-space: nowrap; cursor: pointer;
+}
+.sk-l-lab.is-hot, .sk-l-lab.is-sel { color: var(--sk-sel); box-shadow: 0 0 0 1px var(--sk-sel); }
+.sk-view .sk-l-edit { width: 78px; height: auto; border: 0; outline: 0; text-align: center; box-shadow: 0 0 0 1.5px var(--sk-sel); -webkit-user-select: text; user-select: text; cursor: text; }
+.sk-l-edit::placeholder { color: var(--text-faint); }
+/* 接点：悬停画板上的卡时四边各一个，按住拖出连线。 */
+.sk-l-port {
+  position: absolute; z-index: 2; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%;
+  background: var(--background-primary); box-shadow: 0 0 0 1.5px var(--sk-sel);
+  opacity: 0; transition: opacity 140ms, transform 140ms; cursor: crosshair;
+}
+.sk-l-port-t { left: 50%; top: 0; }
+.sk-l-port-r { left: 100%; top: 50%; }
+.sk-l-port-b { left: 50%; top: 100%; }
+.sk-l-port-l { left: 0; top: 50%; }
+.sk-card.on-board:hover .sk-l-port { opacity: 1; }
+.sk-l-port:hover { transform: scale(1.3); background: var(--sk-sel); }
+.sk-board.is-linking .sk-l-port, .sk-card.is-drag .sk-l-port, .sk-board.is-tiny .sk-l-port { opacity: 0 !important; }
+.sk-board.is-linking, .sk-board.is-linking * { cursor: crosshair !important; }
+.sk-board.is-linking .sk-card.is-target .sk-side { box-shadow: var(--sk-sh-hover), 0 0 0 2px var(--background-primary), 0 0 0 3.5px var(--sk-sel); }
+
+/* ── 标注：笔迹、直线、矩形、文字。在卡片之上、拖着的卡之下 ── */
+/* 三种颜色存名字不存色值，换主题时跟着变：墨（蓝灰墨）、赭（橙压暗）、靛（蓝压暗）。 */
+.sk-view { --sk-i-ink: #2b3646; --sk-i-rust: color-mix(in srgb, #ec7500 70%, #2b2620); --sk-i-blue: color-mix(in srgb, #086ddd 55%, #24303f); }
+.theme-dark .sk-view { --sk-i-ink: #d9dde3; --sk-i-rust: #e6a46a; --sk-i-blue: #8fb6e6; }
+.sk-i-svg, .sk-i-ui { position: absolute; left: -10000px; top: -10000px; overflow: visible; pointer-events: none; }
+.sk-i-svg { z-index: 40; }
+.sk-i-ui { z-index: 42; }
+.sk-i-stroke { fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .9; transition: opacity 140ms; }
+.sk-i-stroke[data-c="ink"] { stroke: var(--sk-i-ink); }
+.sk-i-stroke[data-c="rust"] { stroke: var(--sk-i-rust); }
+.sk-i-stroke[data-c="blue"] { stroke: var(--sk-i-blue); }
+.sk-i-stroke.is-sel { opacity: 1; }
+.sk-i-stroke.is-near, .sk-i-text.is-near { opacity: .35; }
+.sk-i-stroke.is-gone, .sk-i-text.is-gone { opacity: 0; }
+/* 选择模式下标注可以点：SVG 的标注靠叠在上面那条看不见的粗线。矩形只有边框能点，框里照样点得到卡。 */
+.sk-i-hit { fill: none; stroke: transparent; stroke-width: 14px; pointer-events: none; }
+.sk-board[data-ink="select"] .sk-i-hit { pointer-events: stroke; cursor: move; }
+
+/* 文字：直接写在画板上，跟笔迹同色。文字层本身宽 0，不写 max-content 的话每个字会各占一行。 */
+.sk-i-texts { position: absolute; left: 0; top: 0; z-index: 41; }
+.sk-i-text {
+  position: absolute; width: max-content; min-width: 8px; max-width: 320px; padding: 2px 4px; border-radius: 4px;
+  font: 500 15px/1.45 var(--font-interface); white-space: pre-wrap; overflow-wrap: anywhere;
+  opacity: .92; pointer-events: none; outline: none; transition: opacity 140ms;
+}
+.sk-i-text[data-c="ink"] { color: var(--sk-i-ink); }
+.sk-i-text[data-c="rust"] { color: var(--sk-i-rust); }
+.sk-i-text[data-c="blue"] { color: var(--sk-i-blue); }
+.sk-board[data-ink="select"] .sk-i-text { pointer-events: auto; cursor: move; }
+.sk-board .sk-i-text.is-editing {
+  pointer-events: auto; cursor: text; min-width: 120px; -webkit-user-select: text; user-select: text;
+  background: color-mix(in srgb, var(--background-primary) 88%, transparent); box-shadow: 0 0 0 1.5px var(--sk-sel);
+}
+.sk-i-text.is-editing:empty::before { content: "输入文字"; color: var(--text-faint); }
+
+/* 选中：笔迹和文字外面一圈虚线框；把手是白底的小圆点，曲线中间那个实心。 */
+.sk-i-box { fill: none; stroke: var(--sk-sel); stroke-width: 1.25px; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
+.sk-i-handle { fill: var(--background-primary); stroke: var(--sk-sel); stroke-width: 1.5px; vector-effect: non-scaling-stroke; pointer-events: all; cursor: grab; }
+.sk-i-handle.is-mid { fill: var(--sk-sel); }
+.sk-i-handle:active { cursor: grabbing; }
+
+/* 画图时盖在画板上的一层，接住指针；放在视口里，滚轮照样平移缩放。 */
+.sk-i-pad { position: absolute; inset: 0; z-index: 1; display: none; }
+.sk-board[data-ink="pen"] .sk-i-pad, .sk-board[data-ink="line"] .sk-i-pad, .sk-board[data-ink="rect"] .sk-i-pad { display: block; cursor: crosshair; }
+.sk-board[data-ink="text"] .sk-i-pad { display: block; cursor: text; }
+.sk-board[data-ink="eraser"] .sk-i-pad { display: block; cursor: none; }
+.sk-i-ring { position: absolute; display: block; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; pointer-events: none; box-shadow: 0 0 0 1.25px var(--text-normal), inset 0 0 0 1px var(--background-primary); }
+
+/* 工具条：画板左下角一枚小胶囊。画图的工具、或者选中了标注时，右边出现三种颜色。 */
+.sk-i-bar {
+  position: absolute; left: 14px; bottom: 14px; z-index: 1;
+  display: flex; align-items: center; gap: 2px; padding: 4px;
+  border-radius: 11px; background: var(--background-primary);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--text-normal) 10%, transparent), 0 6px 16px -8px color-mix(in srgb, black 30%, transparent);
+}
+.sk-view .sk-i-tool { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border-radius: 8px; color: var(--text-muted); }
+.sk-view .sk-i-tool svg { width: 17px; height: 17px; stroke-width: 1.75; }
+.sk-view .sk-i-tool:hover { color: var(--text-normal); }
+.sk-view .sk-i-tool.is-active { background: color-mix(in srgb, var(--sk-sel) 14%, var(--background-primary)); color: var(--sk-sel); }
+.sk-i-sep, .sk-i-dots { display: none; }
+.sk-i-colors .sk-i-sep { display: block; width: 1px; height: 18px; margin: 0 5px; background: color-mix(in srgb, var(--text-normal) 12%, transparent); }
+.sk-i-colors .sk-i-dots { display: flex; gap: 6px; padding-right: 4px; }
+.sk-view .sk-i-dot { width: 16px; height: 16px; min-width: 0; padding: 0; border: 0; border-radius: 50%; box-shadow: none; cursor: pointer; }
+.sk-view .sk-i-dot[data-c="ink"] { background: var(--sk-i-ink); }
+.sk-view .sk-i-dot[data-c="rust"] { background: var(--sk-i-rust); }
+.sk-view .sk-i-dot[data-c="blue"] { background: var(--sk-i-blue); }
+.sk-view .sk-i-dot.is-active { box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 3.5px var(--text-normal); }

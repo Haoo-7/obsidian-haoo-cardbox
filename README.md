@@ -6,6 +6,8 @@
 
 > 桌面端专用（`isDesktopOnly`）。当前是 v1：卡堆栏、画板、连线、标注、卡片上色、导出 `.canvas` 都已可用。
 
+![画板：卡片、连线、标注和下方的卡堆栏](docs/images/board.png)
+
 ## 前置条件
 
 - Obsidian 1.5 或更高，桌面端（macOS / Windows / Linux）。

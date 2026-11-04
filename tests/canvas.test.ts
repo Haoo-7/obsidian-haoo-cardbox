@@ -19,6 +19,14 @@ test("JSON Canvas 卡片只含标准字段，坐标与尺寸四舍五入为整�
   });
 });
 
+test("自定义卡片颜色按 hex 跟着导出，没上色的卡不带 color", () => {
+  const data: BoardData = { ...emptyBoard(), nodes: [{ ...card("a"), color: "#c08a72" }, card("b")] };
+  assert.deepEqual(toJsonCanvas(data).nodes, [
+    { id: "a", type: "file", file: "a.md", x: 11, y: -19, width: 168, height: 113, color: "#c08a72" },
+    { id: "b", type: "file", file: "b.md", x: 11, y: -19, width: 168, height: 113 },
+  ]);
+});
+
 test("JSON Canvas 连线包含标准字段和可选标签，空标签原样保留", () => {
   const data: BoardData = {
     ...emptyBoard(),

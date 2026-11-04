@@ -24,7 +24,7 @@ export interface Pile {
   cards: VaultNote[];
 }
 
-/** 卡片沿用 JSON Canvas 的字段，额外保留翻面和缺失状态。 */
+/** 卡片沿用 JSON Canvas 的字段，额外保留翻面、缺失状态和用户上的色。 */
 export interface BoardNode {
   id: string;
   type: "file";
@@ -35,6 +35,8 @@ export interface BoardNode {
   height: number;
   flipped?: boolean;
   missing?: boolean;
+  /** 用户给这张卡上的色（#rrggbb）；没有就用笔记类型本来的颜色。 */
+  color?: string;
 }
 
 /** 连线沿用 JSON Canvas 的字段，但在画板上没有方向。 */

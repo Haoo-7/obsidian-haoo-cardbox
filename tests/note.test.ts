@@ -159,6 +159,17 @@ test("每种笔迹的未知或缺省颜色都回退为 ink", () => {
   assert.deepEqual(data.strokes.map((stroke) => stroke.color), ["ink", "ink", "ink", "ink"]);
 });
 
+test("卡片上过的色按 #rrggbb 读回，没上色的卡不写 color", () => {
+  const data: BoardData = {
+    ...emptyBoard(),
+    nodes: [{ id: "a", type: "file", file: "韩德让.md", x: 1, y: 2, width: 168, height: 112, color: "#a9b8a2" }],
+  };
+  const parsed = parseBoardNote(withData(data));
+  assert.deepEqual(parsed.data, data);
+  assert.deepEqual(parseBoardNote(serializeBoardNote(parsed, "")).data, data);
+  assert.equal("color" in parseBoardNote(withData(populatedBoard())).data.nodes[0], false);
+});
+
 test("未知顶层字段在解析和再次写回时保留", () => {
   const data = { ...populatedBoard(), custom: { nested: ["中文", 1] }, flag: false };
   const parsed = parseBoardNote(withData(data));
@@ -173,6 +184,8 @@ test("JSON 值或已知字段损坏时抛错，不静默丢弃内容", () => {
     null, [], 1, "画板",
     { version: "1" },
     { nodes: null }, { nodes: [{}] }, { edges: {} }, { edges: [null] },
+    { nodes: [{ id: "a", type: "file", file: "a.md", x: 0, y: 0, width: 1, height: 1, color: "sage" }] },
+    { nodes: [{ id: "a", type: "file", file: "a.md", x: 0, y: 0, width: 1, height: 1, color: "#fff" }] },
     { strokes: null }, { strokes: [null] },
     { strokes: [{ id: "p", points: [[1]] }] },
     { strokes: [{ id: "p", type: "unknown", points: [] }] },

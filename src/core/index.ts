@@ -2,6 +2,8 @@
 export * from "./types";
 /** 统一提供卡堆归类与卡片标题处理。 */
 export * from "./piles";
+/** 统一提供卡纸颜色和字色推导。 */
+export * from "./palette";
 /** 统一提供画板笔记的识别、解析与写回。 */
 export * from "./note";
 /** 统一提供从画板生成 MOC 正文的入口。 */

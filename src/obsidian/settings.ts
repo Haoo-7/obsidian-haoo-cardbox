@@ -1,6 +1,6 @@
 import { PluginSettingTab, Setting } from "obsidian";
 import type SkeuomorphicCards from "../main";
-import { SWATCHES } from "../ui/shelf";
+import { SWATCHES } from "../core";
 
 /** 设置页：领域标签的前缀、文件夹的颜色。 */
 export class SettingsTab extends PluginSettingTab {

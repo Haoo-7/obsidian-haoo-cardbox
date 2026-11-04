@@ -1,6 +1,6 @@
 import { packDrop, removeNodes } from "../core";
 import type { BoardData, BoardNode, Point, VaultNote } from "../core";
-import { CARD_H, CARD_W, fillExcerpt, makeCard, pose } from "./card";
+import { CARD_H, CARD_W, fillExcerpt, makeCard, paintTint, pose } from "./card";
 import { bindCard, bindViewport } from "./interact";
 import { Ink } from "./ink";
 import { Links } from "./links";
@@ -80,7 +80,7 @@ export class BoardCanvas {
   private renderNode(it: Item): void {
     const { node } = it;
     it.sig = this.sigOf(node);
-    it.el = makeCard(node.missing ? undefined : this.host.note(node.file), node.file);
+    it.el = makeCard(node.missing ? undefined : this.host.note(node.file), node.file, undefined, node.color);
     it.el.addClass("on-board");
     if (node.flipped) it.el.addClass("is-flip");
     pose(it.el, node, 0);
@@ -146,6 +146,20 @@ export class BoardCanvas {
     }
     this.host.changed();
     return true;
+  }
+
+  /** 给选中的卡片上色；hex 为 null 时回到按笔记类型的纸色。一张都没变就什么都不记。 */
+  tint(hex: string | null): boolean {
+    let changed = false;
+    for (const it of this.selected()) {
+      if (it.node.missing || it.node.color === (hex ?? undefined)) continue;
+      if (hex) it.node.color = hex;
+      else delete it.node.color;
+      paintTint(it.el, hex);
+      changed = true;
+    }
+    if (changed) this.host.changed();
+    return changed;
   }
 
   async flip(it: Item): Promise<void> {

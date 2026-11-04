@@ -1,20 +1,9 @@
 import { Menu } from "obsidian";
-import type { Pile } from "../core";
+import { SWATCHES, inkOf } from "../core";
+import type { Pile, Swatch } from "../core";
 import { makeCard, pose } from "./card";
 import { Spread, liftPose, peekPose } from "./spread";
 import type { FolderEls } from "./spread";
-
-export interface Swatch { id: string; name: string; c: string; ink: "light" | "dark"; }
-/** 文件夹的颜色：前片、后片、名字的深浅都从这一个颜色推出来。ink 是名字用深字还是浅字。 */
-export const SWATCHES: Swatch[] = [
-  { id: "graphite", name: "石墨", c: "#3a3b3f", ink: "light" },
-  { id: "mist", name: "雾白", c: "#e9eaee", ink: "dark" },
-  { id: "oat", name: "燕麦", c: "#e4d8c4", ink: "dark" },
-  { id: "sage", name: "鼠尾草", c: "#a9b8a2", ink: "dark" },
-  { id: "slate", name: "雾蓝", c: "#8fa3b8", ink: "dark" },
-  { id: "clay", name: "陶土", c: "#c08a72", ink: "dark" },
-  { id: "plum", name: "梅子", c: "#6e5a72", ink: "light" },
-];
 
 export interface ShelfHost {
   piles(): Pile[];
@@ -137,7 +126,7 @@ export class Shelf {
   paint(): void {
     this.folders.forEach((f) => {
       const s = this.host.color(f.pile.name);
-      for (const n of [f.back, f.front]) { n.style.setProperty("--fc", s.c); n.dataset.ink = s.ink; }
+      for (const n of [f.back, f.front]) { n.style.setProperty("--fc", s.hex); n.dataset.ink = inkOf(s.hex); }
     });
   }
 

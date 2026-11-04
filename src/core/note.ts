@@ -1,3 +1,4 @@
+import { isHexColor } from "./palette";
 import { BOARD_VERSION, emptyBoard } from "./types";
 import type { BoardData, BoardEdge, BoardNode, ParsedBoardNote, Point, Stroke, Viewport } from "./types";
 
@@ -41,7 +42,8 @@ function isNode(value: unknown): value is BoardNode {
     && typeof value.file === "string"
     && hasNumbers(value, "x", "y", "width", "height")
     && (value.flipped === undefined || typeof value.flipped === "boolean")
-    && (value.missing === undefined || typeof value.missing === "boolean");
+    && (value.missing === undefined || typeof value.missing === "boolean")
+    && (value.color === undefined || isHexColor(value.color));
 }
 
 function isEdge(value: unknown): value is BoardEdge {

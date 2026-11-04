@@ -27,7 +27,7 @@ export class BoardView extends TextFileView {
 
   getViewType() { return VIEW_TYPE; }
   getDisplayText() { return this.file?.basename ?? "画板"; }
-  getIcon() { return "layout-dashboard"; }
+  getIcon() { return "boxes"; }
 
   async onOpen() {
     this.contentEl.addClass("sk-view");

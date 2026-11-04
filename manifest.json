@@ -1,9 +1,9 @@
 {
   "id": "skeuomorphic-cards",
-  "name": "拟物卡片盒",
-  "version": "0.1.0",
+  "name": "Haoo Cardbox",
+  "version": "0.1.1",
   "minAppVersion": "1.5.0",
-  "description": "把笔记按领域装进文件夹，摊开挑卡，摆上画板连线、勾画，排成一篇 MOC 的骨架。",
+  "description": "Turn notes into cards, sort them into domain piles, and arrange them on a board with links and ink to build a MOC.",
   "author": "Haoo-7",
   "authorUrl": "https://github.com/Haoo-7",
   "isDesktopOnly": true

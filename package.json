@@ -1,7 +1,7 @@
 {
   "name": "obsidian-skeuomorphic-cards",
-  "version": "0.1.0",
-  "description": "拟物卡片盒：把笔记按领域装进文件夹，摊开挑卡，摆上画板连线勾画，排成 MOC 骨架的 Obsidian 插件",
+  "version": "0.1.1",
+  "description": "Haoo Cardbox：把笔记按领域装进文件夹，摊开挑卡，摆上画板连线勾画，排成 MOC 骨架的 Obsidian 插件",
   "main": "main.js",
   "private": true,
   "scripts": {

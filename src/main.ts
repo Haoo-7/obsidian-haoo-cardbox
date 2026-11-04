@@ -33,7 +33,7 @@ export default class SkeuomorphicCards extends Plugin {
     this.settings = { ...DEFAULTS, ...saved, folderColors: { ...saved?.folderColors } };
     this.registerView(VIEW_TYPE, (leaf) => new BoardView(leaf, this));
     // 悬停卡片预览原笔记：和别处一样，按住 ⌘ / Ctrl 悬停才弹出，可以在「页面预览」的设置里改。
-    this.registerHoverLinkSource(VIEW_TYPE, { display: "拟物卡片盒", defaultMod: true });
+    this.registerHoverLinkSource(VIEW_TYPE, { display: "Haoo Cardbox", defaultMod: true });
     this.addSettingTab(new SettingsTab(this));
 
     this.app.workspace.onLayoutReady(() => {

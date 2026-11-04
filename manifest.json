@@ -1,7 +1,7 @@
 {
-  "id": "skeuomorphic-cards",
+  "id": "haoo-cardbox",
   "name": "Haoo Cardbox",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "minAppVersion": "1.5.0",
   "description": "Turn notes into cards, sort them into domain piles, and arrange them on a board with links and ink to build a MOC.",
   "author": "Haoo-7",

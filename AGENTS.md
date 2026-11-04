@@ -2,7 +2,7 @@
 
 ### Issue tracker
 
-Issues live in GitHub Issues for Haoo-7/obsidian-skeuomorphic-cards (via `gh`). See `docs/agents/issue-tracker.md`.
+Issues live in GitHub Issues for Haoo-7/obsidian-haoo-cardbox (via `gh`). See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

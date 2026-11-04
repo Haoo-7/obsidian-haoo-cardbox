@@ -1,7 +1,7 @@
 import { TAbstractFile, TFile, TFolder } from "obsidian";
 import { buildMoc, isBoardNote, markMissing, parseBoardNote, relink, renameFile, serializeBoardNote } from "../core";
 import type { BoardData } from "../core";
-import type SkeuomorphicCards from "../main";
+import type HaooCardbox from "../main";
 import { BoardView, VIEW_TYPE } from "./view";
 
 /** 画板上的卡怎么跟着库里的一次改动走。nodes 以外的字段原样不动。 */
@@ -49,7 +49,7 @@ export class Follow {
   private ops: Op[] = [];
   private timer = 0;
 
-  constructor(private plugin: SkeuomorphicCards) {}
+  constructor(private plugin: HaooCardbox) {}
 
   rename(f: TAbstractFile, from: string): void {
     if (f instanceof TFolder || f.path.endsWith(".md")) this.push({ kind: "rename", from, to: f.path, folder: f instanceof TFolder });

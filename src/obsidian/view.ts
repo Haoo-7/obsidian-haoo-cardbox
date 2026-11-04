@@ -6,7 +6,7 @@ import type { Item } from "../ui/canvas";
 import { MODE_KEYS } from "../ui/ink";
 import { openCardPalette } from "../ui/palette";
 import { Shelf } from "../ui/shelf";
-import type SkeuomorphicCards from "../main";
+import type HaooCardbox from "../main";
 
 export const VIEW_TYPE = "skeuo-board";
 
@@ -21,7 +21,7 @@ export class BoardView extends TextFileView {
   private broken: string | null = null;
   private history = new History();
 
-  constructor(leaf: WorkspaceLeaf, readonly plugin: SkeuomorphicCards) {
+  constructor(leaf: WorkspaceLeaf, readonly plugin: HaooCardbox) {
     super(leaf);
   }
 

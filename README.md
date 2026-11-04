@@ -23,9 +23,9 @@ npm install
 npm run build      # 产物在 dist/
 ```
 
-把 `dist/` 里的 `main.js`、`manifest.json`、`styles.css` 拷进库的 `.obsidian/plugins/skeuomorphic-cards/`（文件夹名要和 manifest 的 `id` 一致），然后在「设置 → 第三方插件」里启用。
+把 `dist/` 里的 `main.js`、`manifest.json`、`styles.css` 拷进库的 `.obsidian/plugins/haoo-cardbox/`（文件夹名要和 manifest 的 `id` 一致），然后在「设置 → 第三方插件」里启用。
 
-开发时更省事的做法：把 `.obsidian/plugins/skeuomorphic-cards/` 直接做成指向本仓库 `dist/` 的符号链接，跑 `npm run dev` 监听构建，改完在 Obsidian 里重载插件。
+开发时更省事的做法：把 `.obsidian/plugins/haoo-cardbox/` 直接做成指向本仓库 `dist/` 的符号链接，跑 `npm run dev` 监听构建，改完在 Obsidian 里重载插件。
 
 ## 用起来
 

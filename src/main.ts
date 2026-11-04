@@ -18,7 +18,7 @@ const DEFAULTS: Settings = { domainPrefix: "domain/", folderColor: null, folderC
 /**
  * 插件入口：注册画板视图；带 skeuo-board 的笔记默认用画板打开；维护整个库的笔记快照，给卡片和卡堆用。
  */
-export default class SkeuomorphicCards extends Plugin {
+export default class HaooCardbox extends Plugin {
   settings: Settings = DEFAULTS;
   notes = new Map<string, VaultNote>();
   /** 用户点了「用 Markdown 打开」的笔记：下一次打开它时不自动切成画板。 */

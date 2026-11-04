@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildPiles, colorIndex, domainsOf, noteTypeOf, splitTitle } from "../src/core";
+import { buildPiles, domainsOf, noteTypeOf, splitTitle } from "../src/core";
 import type { VaultNote } from "../src/core";
 
 function note(title: string, domains: string[], isBoard = false): VaultNote {
@@ -83,18 +83,6 @@ test("归堆不改变传入笔记或领域的顺序", () => {
   const before = structuredClone(notes);
   buildPiles(notes);
   assert.deepEqual(notes, before);
-});
-
-test("卡片颜色与原型公式算出的已知标题结果相同", () => {
-  // 期望值直接用原型公式预先计算，避免测试复写被测实现。
-  for (const [title, expected] of [
-    ["", 7],
-    ["韩德让", 8],
-    ["20260520_简述_谢缅诺夫《中世纪史》", 4],
-    ["A😀𠮷", 5],
-  ] as const) {
-    assert.equal(colorIndex(title), expected);
-  }
 });
 
 test("卡片标题拆出日期与笔记类型前缀，保留正文中的下划线", () => {

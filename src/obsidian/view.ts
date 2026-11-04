@@ -4,6 +4,7 @@ import type { BoardData, BoardNode, ParsedBoardNote } from "../core";
 import { BoardCanvas } from "../ui/canvas";
 import type { Item } from "../ui/canvas";
 import { MODE_KEYS } from "../ui/ink";
+import { openCardPalette } from "../ui/palette";
 import { Shelf } from "../ui/shelf";
 import type SkeuomorphicCards from "../main";
 
@@ -136,6 +137,9 @@ export class BoardView extends TextFileView {
     } else {
       m.addItem((i) => i.setTitle("在右侧打开原笔记").setIcon("separator-vertical").onClick(() => c.host.open(n.file, true)));
       m.addItem((i) => i.setTitle(n.flipped ? "翻回正面" : "翻到背面").setIcon("flip-horizontal-2").onClick(() => void c.flip(it)));
+      m.addItem((i) => i.setTitle("卡片颜色…").setIcon("palette").onClick(() => {
+        openCardPalette(c.root, it.el, n.color ?? null, (hex) => { c.tint(hex); });
+      }));
     }
     m.addSeparator();
     m.addItem((i) => i.setTitle(count > 1 ? `从画板上拿下 ${count} 张卡` : "从画板上拿下").setIcon("x").onClick(() => c.removeSelected()));

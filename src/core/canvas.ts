@@ -13,6 +13,7 @@ export function toJsonCanvas(data: BoardData): { nodes: unknown[]; edges: unknow
       y: Math.round(node.y),
       width: Math.round(node.width),
       height: Math.round(node.height),
+      ...(node.color ? { color: node.color } : {}),
     })),
     edges: data.edges
       .filter((edge) => ids.has(edge.fromNode) && ids.has(edge.toNode))

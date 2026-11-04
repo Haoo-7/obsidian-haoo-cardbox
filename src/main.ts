@@ -1,8 +1,6 @@
 import { App, FuzzySuggestModal, MarkdownView, Notice, Plugin, TFile, normalizePath } from "obsidian";
-import type { Pile, VaultNote } from "./core";
-import { buildPiles, newBoardNote } from "./core";
-import { SWATCHES } from "./ui/shelf";
-import type { Swatch } from "./ui/shelf";
+import type { Pile, Swatch, VaultNote } from "./core";
+import { SWATCHES, buildPiles, newBoardNote } from "./core";
 import { Follow } from "./obsidian/follow";
 import { SettingsTab } from "./obsidian/settings";
 import { BoardView, VIEW_TYPE } from "./obsidian/view";

@@ -53,11 +53,6 @@ export function buildPiles(notes: VaultNote[]): Pile[] {
   );
 }
 
-/** 与原型使用相同的散列，保证已经定稿的卡片颜色不变。 */
-export function colorIndex(key: string): number {
-  return [...key].reduce((a, ch) => (a * 31 + ch.codePointAt(0)!) % 9973, 7) % 10;
-}
-
 /** 只拆分约定的日期与笔记类型前缀，其他标题完整保留。 */
 export function splitTitle(title: string): { prefix: string; title: string } {
   const match = title.match(/^(\d{8}_[^_]+_)(.+)$/u);

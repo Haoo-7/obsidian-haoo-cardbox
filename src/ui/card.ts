@@ -1,4 +1,4 @@
-import { colorIndex, splitTitle } from "../core";
+import { inkOf, splitTitle } from "../core";
 import type { VaultNote } from "../core";
 
 /** 卡片尺寸。画板坐标、拖放排布、导出 .canvas 都用这一个值。 */
@@ -12,13 +12,14 @@ const dot = (d?: string) => (d || "").replace(/-/g, ".");
  * 两者分开是因为拖动时位置每帧都在变，而翻面和拿起要走 CSS 过渡。
  * note 为空时画成缺失卡片：原笔记被删了，只剩虚线框和原来的文件名。
  */
-export function makeCard(note: VaultNote | undefined, path: string, ctx?: string): HTMLElement {
+export function makeCard(note: VaultNote | undefined, path: string, ctx?: string, color?: string): HTMLElement {
   const title = note?.title ?? path.split("/").pop()!.replace(/\.md$/, "");
   const n = createDiv({ cls: "sk-card" });
   n.dataset.path = path;
   n.dataset.type = note?.type ?? "uncategorized";
-  n.style.setProperty("--k", String(colorIndex(title)));
   if (!note) n.addClass("is-miss");
+  // 用户上过色的卡：纸色换成他挑的那一种，字色按底色深浅来。缺失卡片不上色。
+  if (note && color) paintTint(n, color);
 
   const inner = n.createDiv({ cls: "sk-in" });
   const front = inner.createDiv({ cls: "sk-side sk-front" });
@@ -40,6 +41,22 @@ export function makeCard(note: VaultNote | undefined, path: string, ctx?: string
     r.appendText(v);
   }
   return n;
+}
+
+/**
+ * 上色：只换纸色，字色看底色深浅；null 回到笔记类型本来的纸色。
+ * 卡片元素每次重画都是新造的，所以颜色直接写在行内样式上，不用另外记状态。
+ */
+export function paintTint(el: HTMLElement, hex: string | null): void {
+  if (!hex) {
+    el.removeClass("is-tint");
+    delete el.dataset.ink;
+    el.style.removeProperty("--face");
+    return;
+  }
+  el.addClass("is-tint");
+  el.dataset.ink = inkOf(hex);
+  el.style.setProperty("--face", hex);
 }
 
 /** 翻到背面时才去读正文开头：一块画板上几十张卡，没必要一打开就全读。 */

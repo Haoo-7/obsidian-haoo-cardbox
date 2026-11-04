@@ -3,3 +3,7 @@ dist/
 build/
 *.zip
 .DS_Store
+
+# 本地原型和工具缓存，不进仓库
+.oil-ui/
+.qoder/

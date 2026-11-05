@@ -86,10 +86,11 @@ npm run build      # 产物在 dist/
 ## 开发
 
 ```bash
-npm run dev     # 监听构建
-npm run check   # tsc --noEmit
-npm test        # node:test，先 esbuild 打包再跑
-npm run build   # 生产构建到 dist/
+npm run dev             # 监听构建
+npm run check           # tsc --noEmit
+npm run check:obsidian  # Obsidian 社区插件自检：manifest/versions 检查 + 官方 ESLint 规则
+npm test                # node:test，先 esbuild 打包再跑
+npm run build           # 生产构建到 dist/
 ```
 
 - `src/core/` 是纯逻辑（归堆、画板笔记读写、MOC 正文、改名删除跟随、拖放排布、撤销、导出），不 import Obsidian，是唯一的测试接缝。

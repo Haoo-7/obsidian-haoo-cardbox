@@ -48,8 +48,8 @@ export class BoardView extends TextFileView {
       drop: (paths, x, y) => this.canvas.addFiles(paths, this.canvas.toWorld(x, y)),
       more: (pile) => this.plugin.pickFrom(this, pile),
       color: (pile) => this.plugin.swatch(pile),
-      setColor: (pile, id) => this.plugin.setFolderColor(pile, id),
-      setDefaultColor: (id) => this.plugin.setDefaultColor(id),
+      setColor: (pile, id) => { void this.plugin.setFolderColor(pile, id); },
+      setDefaultColor: (id) => { void this.plugin.setDefaultColor(id); },
     });
     this.canvas.root.addEventListener("keydown", (e) => this.onKey(e));
     this.contentEl.addEventListener("keydown", (e) => { if (e.key === "Escape" && this.shelf.isOpen()) { e.stopPropagation(); this.shelf.close(); } });
@@ -172,7 +172,7 @@ export class BoardView extends TextFileView {
   // ── 撤销 ──
   private restore(doc: unknown): void {
     if (!doc || !this.parsed) return;
-    Object.assign(this.parsed.data, doc as object);
+    Object.assign(this.parsed.data, doc);
     this.canvas.load(this.parsed.data);
     this.requestSave();
     this.shelf.refreshOn();

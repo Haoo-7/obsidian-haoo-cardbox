@@ -1,6 +1,6 @@
 {
   "name": "obsidian-haoo-cardbox",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Haoo Cardbox：把笔记按领域装进文件夹，摊开挑卡，摆上画板连线勾画，排成 MOC 骨架的 Obsidian 插件",
   "main": "main.js",
   "private": true,
@@ -8,6 +8,7 @@
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
     "check": "tsc --noEmit",
+    "check:obsidian": "npx -y obsidian-plugin-validator@1.0.7 .",
     "test": "esbuild tests/*.test.ts --bundle --platform=node --format=esm --outdir=build/tests --out-extension:.js=.mjs && node --test build/tests/*.test.mjs"
   },
   "keywords": ["obsidian", "zettelkasten", "moc", "canvas"],

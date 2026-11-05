@@ -39,7 +39,7 @@ export function openCardPalette(
   }
 
   // 贴着卡片下沿居中弹出来；下面放不下就翻到卡片上面。先量大小再定位，免得被画板边缘裁掉。
-  box.style.visibility = "hidden";
+  box.addClass("is-measuring");
   const r = root.getBoundingClientRect();
   const a = anchor.getBoundingClientRect();
   const w = box.offsetWidth, h = box.offsetHeight;
@@ -48,7 +48,7 @@ export function openCardPalette(
   const top = under ? a.bottom - r.top + 8 : a.top - r.top - h - 8;
   box.style.left = `${left}px`;
   box.style.top = `${Math.max(8, top)}px`;
-  box.style.visibility = "";
+  box.removeClass("is-measuring");
 
   // 画板可能开在独立的弹出窗口里：监听和计时都跟着它自己的 document / window 走。
   const doc = box.doc, win = box.win;

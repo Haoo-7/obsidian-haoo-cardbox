@@ -30,6 +30,8 @@ const newId = () => `m${Date.now().toString(36)}${Math.floor(Math.random() * 466
 const r1 = (v: number) => Math.round(v * 10) / 10;
 const rp = (p: Point): Point => [r1(p[0]), r1(p[1])];
 const mid = (a: Point, b: Point): Point => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+/** SVG path 里的坐标写成 "x,y"，和 JSON Canvas 的写法一致。 */
+const at = (p: Point) => `${p[0]},${p[1]}`;
 
 function segDist(p: Point, a: Point, b: Point): number {
   const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1;
@@ -44,10 +46,10 @@ function simplify(p: Point[], eps = 0.6): Point[] {
   return max > eps ? simplify(p.slice(0, idx + 1), eps).slice(0, -1).concat(simplify(p.slice(idx), eps)) : [p[0], p[p.length - 1]];
 }
 function penPath(p: Point[]): string {
-  if (p.length < 2) return p.length ? `M${p[0]} l0.1,0` : "";
-  let d = `M${p[0]}`;
-  for (let i = 1; i < p.length - 1; i++) d += ` Q${p[i]} ${mid(p[i], p[i + 1])}`;
-  return `${d} L${p[p.length - 1]}`;
+  if (p.length < 2) return p.length ? `M${at(p[0])} l0.1,0` : "";
+  let d = `M${at(p[0])}`;
+  for (let i = 1; i < p.length - 1; i++) d += ` Q${at(p[i])} ${at(mid(p[i], p[i + 1]))}`;
+  return `${d} L${at(p[p.length - 1])}`;
 }
 /** 直线的 m 是曲线正中间那一点（在线上）；二次曲线的控制点 = 2m − (a+b)/2。 */
 function ctrl(s: Line & { m: Point }): Point {
@@ -226,7 +228,7 @@ export class Ink {
     }
     const attrs: Record<string, string> = s.type === "rect"
       ? { x: `${s.x}`, y: `${s.y}`, width: `${s.w}`, height: `${s.h}` }
-      : { d: s.type === "pen" ? penPath(s.points) : s.m ? `M${s.a} Q${ctrl(s as Line & { m: Point })} ${s.b}` : `M${s.a} L${s.b}` };
+      : { d: s.type === "pen" ? penPath(s.points) : s.m ? `M${at(s.a)} Q${at(ctrl(s as Line & { m: Point }))} ${at(s.b)}` : `M${at(s.a)} L${at(s.b)}` };
     for (const n of [M.el, M.hit!]) for (const k in attrs) n.setAttribute(k, attrs[k]);
   }
   private box(M: Mark): Box {

@@ -2,7 +2,16 @@ import { App, TFile } from "obsidian";
 import { domainsOf, isBoardNote, noteTypeOf } from "../core";
 import type { VaultNote } from "../core";
 
-const str = (v: unknown) => (v === undefined || v === null ? undefined : String(v).trim() || undefined);
+/** frontmatter 里的值转成一行文字：字符串、数字、布尔直接用，数组按项拼起来，对象不认识。 */
+const str = (v: unknown): string | undefined => {
+  if (typeof v === "string") return v.trim() || undefined;
+  if (typeof v === "number" || typeof v === "boolean") return String(v).trim() || undefined;
+  if (Array.isArray(v)) {
+    const parts = (v as unknown[]).map(str).filter((s): s is string => !!s);
+    return parts.length ? parts.join(", ") : undefined;
+  }
+  return undefined;
+};
 
 /** 用 metadataCache 拼出整个库的笔记快照：标题、类型、领域、日期、作者、来源。不读正文，所以很快。 */
 export function snapshot(app: App, prefix: string): Map<string, VaultNote> {
@@ -11,9 +20,10 @@ export function snapshot(app: App, prefix: string): Map<string, VaultNote> {
     const cache = app.metadataCache.getFileCache(f);
     const fm = cache?.frontmatter;
     const tags: string[] = [];
-    const ft = fm?.tags;
-    if (Array.isArray(ft)) ft.forEach((t) => t && tags.push(String(t)));
-    else if (typeof ft === "string") tags.push(...ft.split(/[,\s]+/));
+    const ft: unknown = fm?.tags;
+    if (Array.isArray(ft)) {
+      for (const t of ft as unknown[]) if (typeof t === "string" || typeof t === "number") tags.push(String(t));
+    } else if (typeof ft === "string") tags.push(...ft.split(/[,\s]+/));
     cache?.tags?.forEach((t) => tags.push(t.tag));
     out.set(f.path, {
       path: f.path,

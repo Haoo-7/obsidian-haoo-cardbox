@@ -176,6 +176,8 @@
   font: 500 11px/16px var(--font-interface); letter-spacing: .04em; white-space: nowrap; cursor: pointer;
 }
 .sk-l-lab.is-hot, .sk-l-lab.is-sel { color: var(--sk-sel); box-shadow: 0 0 0 1px var(--sk-sel); }
+/* 编辑标签时先把原来的牌子藏起来，但保留它占的位置。 */
+.sk-l-lab.is-hidden { visibility: hidden; }
 .sk-view .sk-l-edit { width: 78px; height: auto; border: 0; outline: 0; text-align: center; box-shadow: 0 0 0 1.5px var(--sk-sel); -webkit-user-select: text; user-select: text; cursor: text; }
 .sk-l-edit::placeholder { color: var(--text-faint); }
 /* 接点：悬停画板上的卡时四边各一个，按住拖出连线。 */
@@ -269,6 +271,8 @@
   border-radius: 10px; background: var(--background-primary);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--text-normal) 12%, transparent), 0 10px 26px -12px color-mix(in srgb, black 42%, transparent);
 }
+/* 先量出色卡大小再定位；测量时不可见，避免闪一下。 */
+.sk-palette.is-measuring { visibility: hidden; }
 .sk-view .sk-palette-dot {
   width: 18px; height: 18px; min-width: 0; padding: 0; border: 0; border-radius: 50%;
   background: var(--c); cursor: pointer; transition: transform 140ms;

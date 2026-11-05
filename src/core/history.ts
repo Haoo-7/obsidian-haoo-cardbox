@@ -31,8 +31,8 @@ export class History {
     this.current = next;
   }
 
-  /** 返回独立的上一份内容，并让后续提交以撤销结果为基准。 */
-  undo(): unknown | null {
+  /** 返回独立的上一份内容，并让后续提交以撤销结果为基准；没有可撤销的内容时返回 null。 */
+  undo(): unknown {
     const previous = this.undoStack.pop();
     if (previous === undefined || this.current === undefined) return null;
     this.redoStack.push(this.current);
@@ -40,8 +40,8 @@ export class History {
     return JSON.parse(previous) as unknown;
   }
 
-  /** 返回独立的下一份内容，并同步当前基准。 */
-  redo(): unknown | null {
+  /** 返回独立的下一份内容，并同步当前基准；没有可重做的内容时返回 null。 */
+  redo(): unknown {
     const next = this.redoStack.pop();
     if (next === undefined || this.current === undefined) return null;
     this.undoStack.push(this.current);

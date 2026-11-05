@@ -1,5 +1,5 @@
 import type { Pile } from "../core";
-import { CARD_H, CARD_W, makeCard, pose, tilter } from "./card";
+import { CARD_H, CARD_W, makeCard, pose, resetTilt, tilter } from "./card";
 import type { Shelf } from "./shelf";
 
 type Pose = { x: number; y: number; r: number; s: number };
@@ -42,7 +42,7 @@ export class Spread {
     const nEmpty = Math.max(1, Math.round(cells.length * 0.12));
     const empty = new Set(cells.slice().sort(() => r() - 0.5).slice(0, nEmpty));
     const used = cells.filter((c) => !empty.has(c));
-    const shift = [...Array(rows)].map(() => (r() - 0.5) * 16);
+    const shift = Array.from({ length: rows }, () => (r() - 0.5) * 16);
     const gx = (w - cols * CX) / 2, gy = Math.max(16, (h - rows * CY) / 2);
     const cell = (c: number) => ({ x: gx + (c % cols) * CX + (CX - CARD_W) / 2, y: gy + Math.floor(c / cols) * CY + (CY - CARD_H) / 2 });
 
@@ -161,7 +161,7 @@ export class Spread {
           else if (wasSel) { this.cards.forEach((o) => o !== c && o.el.removeClass("is-sel")); }
           return;
         }
-        group.forEach((g) => { g.el.removeClass("is-drag", "is-sel"); g.el.style.setProperty("--tilt", "0deg"); });
+        group.forEach((g) => { g.el.removeClass("is-drag", "is-sel"); resetTilt(g.el); });
         if (ev.type === "pointerup" && this.shelf.overBoard(ev.clientX, ev.clientY)) {
           this.shelf.host.drop(group.map((g) => g.path), ev.clientX - grab.x, ev.clientY - grab.y);
           group.forEach((g) => { pose(g.el, g.out, 0); g.el.addClass("is-pop"); window.setTimeout(() => g.el.removeClass("is-pop"), 300); });

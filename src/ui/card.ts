@@ -86,11 +86,17 @@ export function tilter(n: HTMLElement): (dx: number) => void {
   };
 }
 
+/** 放下时把倾斜归零。重置值收在常量里：它是动画状态，不是主题样式。 */
+const TILT_ZERO = "0deg";
+export function resetTilt(n: HTMLElement): void {
+  n.style.setProperty("--tilt", TILT_ZERO);
+}
+
 /** 放下时的落定：一次 140ms 的回弹。 */
 export function settle(n: HTMLElement): void {
   n.removeClass("is-settle");
   void n.offsetWidth;
   n.addClass("is-settle");
-  n.style.setProperty("--tilt", "0deg");
+  resetTilt(n);
   window.setTimeout(() => n.removeClass("is-settle"), 200);
 }

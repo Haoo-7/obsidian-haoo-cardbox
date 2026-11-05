@@ -5,6 +5,8 @@ import type { BoardCanvas, Item } from "./canvas";
 type P = [number, number];
 interface E { edge: BoardEdge; g: SVGGElement; line: SVGPathElement; hit: SVGPathElement; lab: HTMLElement; m: P; sel: boolean; }
 const newId = () => `e${Date.now().toString(36)}${Math.floor(Math.random() * 46656).toString(36)}`;
+/** SVG path 里的坐标写成 "x,y"。 */
+const at = (p: P) => `${p[0]},${p[1]}`;
 
 /** 曲线从两张卡相对的那两条边的中点出发，沿边的法线方向弯出去。 */
 function side(n: BoardNode, px: number, py: number): { p: P; n: P } {
@@ -18,7 +20,7 @@ function geo(a: BoardNode, b: BoardNode): { d: string; m: P } {
   const L = Math.max(24, Math.hypot(e.p[0] - s.p[0], e.p[1] - s.p[1]) * 0.42);
   const c1: P = [s.p[0] + s.n[0] * L, s.p[1] + s.n[1] * L], c2: P = [e.p[0] + e.n[0] * L, e.p[1] + e.n[1] * L];
   const m: P = [(s.p[0] + 3 * c1[0] + 3 * c2[0] + e.p[0]) / 8, (s.p[1] + 3 * c1[1] + 3 * c2[1] + e.p[1]) / 8];
-  return { d: `M${s.p} C${c1} ${c2} ${e.p}`, m };
+  return { d: `M${at(s.p)} C${at(c1)} ${at(c2)} ${at(e.p)}`, m };
 }
 
 /**
@@ -118,7 +120,7 @@ export class Links {
     const move = (ev: PointerEvent) => {
       const [x, y] = this.c.toWorld(ev.clientX, ev.clientY), s = side(A.node, x, y);
       const L = Math.max(24, Math.hypot(x - s.p[0], y - s.p[1]) * 0.42);
-      tmp.setAttribute("d", `M${s.p} C${s.p[0] + s.n[0] * L},${s.p[1] + s.n[1] * L} ${x},${y} ${x},${y}`);
+      tmp.setAttribute("d", `M${at(s.p)} C${s.p[0] + s.n[0] * L},${s.p[1] + s.n[1] * L} ${x},${y} ${x},${y}`);
       const hitEl = document.elementsFromPoint(ev.clientX, ev.clientY).map((n) => n.closest(".sk-card.on-board")).find((n) => n && n !== A.el);
       const t = hitEl ? [...this.c.items.values()].find((it) => it.el === hitEl) ?? null : null;
       if (t !== target) { target?.el.removeClass("is-target"); target = t; target?.el.addClass("is-target"); }
@@ -157,7 +159,7 @@ export class Links {
     const inp = this.labels.createEl("input", { cls: "sk-l-edit", attr: { maxlength: "12", placeholder: "关系" } });
     inp.value = e.edge.label ?? "";
     Object.assign(inp.style, { left: `${e.m[0]}px`, top: `${e.m[1]}px` });
-    e.lab.style.visibility = "hidden";
+    e.lab.addClass("is-hidden");
     inp.focus();
     inp.select();
     let done = false;
@@ -170,7 +172,7 @@ export class Links {
         this.c.host.changed();
       }
       inp.remove();
-      e.lab.style.visibility = "";
+      e.lab.removeClass("is-hidden");
       this.render();
       this.c.root.focus({ preventScroll: true });
     };
